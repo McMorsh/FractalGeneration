@@ -13,6 +13,25 @@ find_package(raylib CONFIG REQUIRED)
 find_package(OpenMP REQUIRED)
 find_package(Threads REQUIRED)
 
+option(FRACTAL_ENABLE_OPENCL "Enable OpenCL backend when OpenCL is found" ON)
+
+if(FRACTAL_ENABLE_OPENCL)
+    find_package(OpenCL QUIET)
+    if(NOT OpenCL_FOUND AND MINGW)
+        get_filename_component(MINGW_BIN_DIR "${CMAKE_CXX_COMPILER}" DIRECTORY)
+        get_filename_component(MINGW_PREFIX "${MINGW_BIN_DIR}" DIRECTORY)
+        find_path(OpenCL_INCLUDE_DIR NAMES CL/cl.h PATHS "${MINGW_PREFIX}/include" NO_DEFAULT_PATH)
+        find_library(OpenCL_LIBRARY NAMES OpenCL PATHS "${MINGW_PREFIX}/lib" NO_DEFAULT_PATH)
+        if(OpenCL_INCLUDE_DIR AND OpenCL_LIBRARY)
+            add_library(OpenCL::OpenCL UNKNOWN IMPORTED)
+            set_target_properties(OpenCL::OpenCL PROPERTIES
+                    IMPORTED_LOCATION "${OpenCL_LIBRARY}"
+                    INTERFACE_INCLUDE_DIRECTORIES "${OpenCL_INCLUDE_DIR}")
+            set(OpenCL_FOUND TRUE)
+        endif()
+    endif()
+endif()
+
 function(enable_project_warnings target)
     if(MSVC)
         target_compile_options(${target} PRIVATE /W4 /utf-8)
@@ -59,6 +78,8 @@ add_executable(FractalGeneration
         app/command_line.cpp
         app/headless.cpp
         fractal_core/fractal.cpp
+        fractal_core/fractal_opencl.cpp
+        fractal_core/fractal_simd.cpp
         fractal_core/fractal_type.cpp
         fractal_core/iterations.cpp
         fractal_core/view.cpp
@@ -81,6 +102,11 @@ target_link_libraries(FractalGeneration PRIVATE
         raylib
         OpenMP::OpenMP_CXX
         Threads::Threads)
+
+if(OpenCL_FOUND)
+    target_link_libraries(FractalGeneration PRIVATE OpenCL::OpenCL)
+    target_compile_definitions(FractalGeneration PRIVATE FRACTALGENERATION_HAS_OPENCL=1)
+endif()
 
 enable_project_warnings(FractalGeneration)
 
@@ -110,6 +136,10 @@ add_custom_command(TARGET FractalGeneration POST_BUILD
 
 copy_mingw_runtime_dlls(FractalGeneration)
 
+if(OpenCL_FOUND)
+    copy_mingw_runtime_dlls(FractalGeneration OpenCL.dll)
+endif()
+
 include(CTest)
 
 if(BUILD_TESTING)
@@ -128,6 +158,8 @@ if(BUILD_TESTING)
             tests/view_test.cpp
             tests/view_snapshot_test.cpp
             fractal_core/fractal.cpp
+            fractal_core/fractal_opencl.cpp
+            fractal_core/fractal_simd.cpp
             fractal_core/fractal_type.cpp
             fractal_core/iterations.cpp
             fractal_core/view.cpp
@@ -149,8 +181,17 @@ if(BUILD_TESTING)
             raylib
             OpenMP::OpenMP_CXX)
 
+    if(OpenCL_FOUND)
+        target_link_libraries(fractal_tests PRIVATE OpenCL::OpenCL)
+        target_compile_definitions(fractal_tests PRIVATE FRACTALGENERATION_HAS_OPENCL=1)
+    endif()
+
     enable_project_warnings(fractal_tests)
     copy_mingw_runtime_dlls(fractal_tests libgtest.dll libgtest_main.dll)
+
+    if(OpenCL_FOUND)
+        copy_mingw_runtime_dlls(fractal_tests OpenCL.dll)
+    endif()
 
     include(GoogleTest)
     gtest_discover_tests(fractal_tests DISCOVERY_MODE PRE_TEST)

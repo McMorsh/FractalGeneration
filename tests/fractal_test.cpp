@@ -71,6 +71,31 @@ TEST(FractalTest, GenerateCornerEscapes) {
   EXPECT_LT(data.front(), 100.0);
 }
 
+TEST(FractalTest, GenerateMatchesScalarValues) {
+  const Fractal fractal(100);
+  constexpr int kWidth = 32;
+  constexpr int kHeight = 16;
+  constexpr double kCenterX = -0.6;
+  constexpr double kCenterY = 0.0;
+  constexpr double kSpan = 3.5;
+  const std::vector<double> data =
+      fractal.Generate(kWidth, kHeight, kCenterX, kCenterY, kSpan);
+
+  ASSERT_EQ(data.size(), static_cast<std::size_t>(kWidth * kHeight));
+  const double scale = kSpan / kWidth;
+  const double half_width = kWidth * 0.5;
+  const double half_height = kHeight * 0.5;
+  for (int y = 0; y < kHeight; ++y) {
+    const double imag = kCenterY - (y - half_height) * scale;
+    for (int x = 0; x < kWidth; ++x) {
+      const double real = kCenterX + (x - half_width) * scale;
+      EXPECT_NEAR(data[static_cast<std::size_t>(y) * kWidth + x],
+                  fractal.Compute(real, imag), 1e-7)
+          << "x=" << x << " y=" << y;
+    }
+  }
+}
+
 TEST(FractalTest, GenerateIsDeterministic) {
   const Fractal fractal(100);
   const std::vector<double> first = fractal.Generate(32, 24, -0.6, 0.0, 3.5);

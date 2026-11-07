@@ -19,6 +19,7 @@
 - копирование и вставка вида через буфер обмена (`C` и `V`);
 - автоматический подбор числа итераций при зуме и ручная подстройка;
 - параллельный расчёт через OpenMP и фоновый поток, интерфейс не блокируется;
+- расчёт на GPU через OpenCL с откатом на AVX2 и скалярный код;
 - предпросмотр в половинном разрешении во время движения, полный кадр после остановки;
 - изменение размера окна с пересчётом кадра;
 - экспорт PNG без интерфейса в FHD, 2K, 4K или 8K;
@@ -202,6 +203,7 @@ zₙ₊₁ = zₙ² + c
 - CMake 3.21 или новее;
 - OpenMP;
 - raylib 5.x или новее;
+- OpenCL (необязательно, для GPU-расчёта);
 - GoogleTest (для тестов).
 
 ### Windows (MSYS2 / MinGW)
@@ -214,7 +216,8 @@ pacman -Syu
 pacman -S --needed git mingw-w64-ucrt-x86_64-gcc \
   mingw-w64-ucrt-x86_64-cmake mingw-w64-ucrt-x86_64-ninja \
   mingw-w64-ucrt-x86_64-raylib mingw-w64-ucrt-x86_64-libgomp \
-  mingw-w64-ucrt-x86_64-gtest
+  mingw-w64-ucrt-x86_64-gtest \
+  mingw-w64-ucrt-x86_64-opencl-headers mingw-w64-ucrt-x86_64-opencl-icd
 ```
 
 Сборка:
@@ -234,6 +237,9 @@ CMake при сборке через MinGW сам копирует нужные 
 `assets/OFL.txt` копируются в `assets/` рядом с exe, а `assets/icon.ico`
 встраивается в сам файл.
 
+OpenCL-бэкенд включается автоматически, если CMake нашёл OpenCL. Если пакетов
+нет, проект собирается с AVX2 и скалярным CPU-кодом.
+
 ### Linux
 
 ```bash
@@ -244,7 +250,8 @@ cd FractalGeneration
 sudo apt update
 sudo apt install build-essential cmake git curl zip unzip tar pkg-config \
   libgl1-mesa-dev libx11-dev libxrandr-dev libxi-dev libxcursor-dev \
-  libxinerama-dev libasound2-dev libwayland-dev libxkbcommon-dev wayland-protocols
+  libxinerama-dev libasound2-dev libwayland-dev libxkbcommon-dev wayland-protocols \
+  ocl-icd-opencl-dev
 
 git clone https://github.com/microsoft/vcpkg "$HOME/vcpkg"
 "$HOME/vcpkg/bootstrap-vcpkg.sh"
@@ -278,7 +285,9 @@ ctest --test-dir build --output-on-failure
 
 | Путь | Назначение |
 | --- | --- |
-| `fractal_core/fractal.hpp`, `fractal_core/fractal.cpp` | Расчёт выбранного фрактала и сглаженных итераций |
+| `fractal_core/fractal.hpp`, `fractal_core/fractal.cpp` | Расчёт выбранного фрактала через OpenCL, AVX2 или скалярный код |
+| `fractal_core/fractal_opencl.hpp`, `fractal_core/fractal_opencl.cpp` | OpenCL-бэкенд для Мандельброта |
+| `fractal_core/fractal_simd.hpp`, `fractal_core/fractal_simd.cpp` | AVX2-путь для Мандельброта |
 | `fractal_core/fractal_type.hpp`, `fractal_core/fractal_type.cpp` | Тип фрактала, параметры Julia и разбор имени |
 | `fractal_core/view.hpp`, `fractal_core/view.cpp` | Камера: зум, панорамирование и координаты |
 | `fractal_core/iterations.hpp`, `fractal_core/iterations.cpp` | Автоматическое число итераций и ручная подстройка |
@@ -304,8 +313,9 @@ ctest --test-dir build --output-on-failure
 
 - другие фракталы, например Tricorn;
 - кэш последних кадров для возврата к уже посещённому виду;
-- рендеринг на GPU;
-- готовые сборки в GitHub Releases.
+- более глубокий зум через perturbation theory;
+- готовые сборки в GitHub Releases;
+- Linux-пакет AppImage или Flatpak.
 
 ## Лицензия
 
