@@ -20,6 +20,7 @@
 - автоматический подбор числа итераций при зуме и ручная подстройка;
 - параллельный расчёт через OpenMP и фоновый поток, интерфейс не блокируется;
 - расчёт на GPU через OpenCL с откатом на AVX2 и скалярный код;
+- выбор backend через `--backend auto|cpu|opencl`, активное устройство показано в HUD;
 - предпросмотр в половинном разрешении во время движения, полный кадр после остановки;
 - изменение размера окна с пересчётом кадра;
 - экспорт PNG без интерфейса в FHD, 2K, 4K или 8K;
@@ -147,13 +148,17 @@ png=4K
 | `--span <value>` | ширина окна в комплексных единицах, по умолчанию 3.5 |
 | `--palette <name>` | `Ember`, `Ocean` или `Mono` |
 | `--fractal <name>` | `mandelbrot`, `julia` или `burningship`, по умолчанию `mandelbrot` |
+| `--backend <name>` | `auto`, `cpu` или `opencl`, по умолчанию `auto` |
 | `-h, --help` | справка |
 
-Имена палитр и фракталов не зависят от регистра. Опции `--width`, `--height`,
-`--iterations`, `--center`, `--span`, `--palette` и `--fractal` действуют только
-в режиме без окна. В GUI параметр `c` у Julia меняется ползунками, а headless
-использует значение по умолчанию `-0.8 + 0.156i`. Для Burning Ship удобно
-`--center -0.5 0.5 --span 4`.
+Имена палитр, фракталов и backend не зависят от регистра. Опции `--width`,
+`--height`, `--iterations`, `--center`, `--span`, `--palette` и `--fractal`
+действуют только в режиме без окна. `--backend` действует и в окне: выбранное
+устройство показано в HUD. OpenCL реализован только для Мандельброта; в
+headless-режиме `--backend opencl` для других фракталов и при отсутствии
+подходящей видеокарты завершается с ошибкой. В GUI параметр `c` у Julia меняется
+ползунками, а headless использует значение по умолчанию `-0.8 + 0.156i`. Для
+Burning Ship удобно `--center -0.5 0.5 --span 4`.
 
 ## Как это работает
 
@@ -286,6 +291,7 @@ ctest --test-dir build --output-on-failure
 | Путь | Назначение |
 | --- | --- |
 | `fractal_core/fractal.hpp`, `fractal_core/fractal.cpp` | Расчёт выбранного фрактала через OpenCL, AVX2 или скалярный код |
+| `fractal_core/backend.hpp`, `fractal_core/backend.cpp` | Выбор и описание вычислительного backend |
 | `fractal_core/fractal_opencl.hpp`, `fractal_core/fractal_opencl.cpp` | OpenCL-бэкенд для Мандельброта |
 | `fractal_core/fractal_simd.hpp`, `fractal_core/fractal_simd.cpp` | AVX2-путь для Мандельброта |
 | `fractal_core/fractal_type.hpp`, `fractal_core/fractal_type.cpp` | Тип фрактала, параметры Julia и разбор имени |
@@ -314,6 +320,7 @@ ctest --test-dir build --output-on-failure
 - другие фракталы, например Tricorn;
 - кэш последних кадров для возврата к уже посещённому виду;
 - более глубокий зум через perturbation theory;
+- сохранение выбранного backend в настройках;
 - готовые сборки в GitHub Releases;
 - Linux-пакет AppImage или Flatpak.
 

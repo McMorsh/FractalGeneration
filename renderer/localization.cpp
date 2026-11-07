@@ -8,7 +8,8 @@ namespace {
 
 constexpr UiText kRussianText = {
     "УПРАВЛЕНИЕ",
-    "масштаб %.3gx   |   итераций %d   |   %s   | рендер %.1f мс   |   PNG %s",
+    "масштаб %.3gx   |   итераций %d   |   %s   |   %s   | "
+    "рендер %.1f мс   |   PNG %s",
     "центр (%.15g, %+.15gi)   |   курсор (%.15g, %+.15gi)",
     "курсор (%.15g, %+.15gi)",
     "   |   время с рендера %.0f мс",
@@ -26,7 +27,8 @@ constexpr UiText kRussianText = {
 
 constexpr UiText kEnglishText = {
     "CONTROLS",
-    "zoom %.3gx   |   iterations %d   |   %s   |   render %.1f ms   |   PNG %s",
+    "zoom %.3gx   |   iterations %d   |   %s   |   %s   | "
+    "render %.1f ms   |   PNG %s",
     "center (%.15g, %+.15gi)   |   cursor (%.15g, %+.15gi)",
     "cursor (%.15g, %+.15gi)",
     "   |   image age %.0f ms",

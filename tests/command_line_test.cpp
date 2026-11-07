@@ -4,6 +4,7 @@
 
 #include <gtest/gtest.h>
 
+#include "backend.hpp"
 #include "command_line.hpp"
 #include "fractal_type.hpp"
 
@@ -82,6 +83,21 @@ TEST(CommandLineTest, ParsesRenderSettings) {
   EXPECT_DOUBLE_EQ(options.settings.center_x, -0.5);
   EXPECT_DOUBLE_EQ(options.settings.center_y, 0.5);
   EXPECT_DOUBLE_EQ(options.settings.span, 2.0);
+}
+
+TEST(CommandLineTest, ParsesBackend) {
+  Args args{"FractalGeneration", "--backend", "opencl"};
+  Options options;
+
+  ASSERT_TRUE(ParseArguments(args.GetArgc(), args.GetArgv(), options));
+  EXPECT_EQ(options.settings.backend, Backend::kOpenCl);
+}
+
+TEST(CommandLineTest, RejectsUnknownBackend) {
+  Args args{"FractalGeneration", "--backend", "gpu"};
+  Options options;
+
+  EXPECT_FALSE(ParseArguments(args.GetArgc(), args.GetArgv(), options));
 }
 
 TEST(CommandLineTest, RejectsUnknownOption) {

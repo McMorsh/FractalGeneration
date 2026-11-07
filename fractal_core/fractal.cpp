@@ -6,14 +6,16 @@
 #include <stop_token>
 #include <vector>
 
+#include "backend.hpp"
 #include "fractal_opencl.hpp"
 #include "fractal_simd.hpp"
 #include "fractal_type.hpp"
 
 Fractal::Fractal(int max_iterations) : max_iterations_(max_iterations) {}
 
-Fractal::Fractal(int max_iterations, const FractalParams& params)
-    : max_iterations_(max_iterations), params_(params) {}
+Fractal::Fractal(int max_iterations, const FractalParams& params,
+                 Backend backend)
+    : max_iterations_(max_iterations), params_(params), backend_(backend) {}
 
 double Fractal::Compute(double real, double imag) const {
   // For Mandelbrot and Burning Ship c is the point and z0 = 0; for Julia it
@@ -66,7 +68,7 @@ std::vector<double> Fractal::Generate(int width, int height, double center_x,
     return {};
   }
 
-  if (params_.type == FractalType::kMandelbrot &&
+  if (params_.type == FractalType::kMandelbrot && backend_ != Backend::kCpu &&
       fractal_opencl::IsAvailable()) {
     std::vector<double> gpu = fractal_opencl::GenerateMandelbrot(
         width, height, center_x, center_y, span, max_iterations_, stop_token);

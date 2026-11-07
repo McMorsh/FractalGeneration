@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 
+#include "backend.hpp"
 #include "color_map.hpp"
 #include "fractal_render.hpp"
 #include "fractal_type.hpp"
@@ -20,7 +21,9 @@
 class Application {
  public:
   /// Creates the application, loads settings, and opens the window.
-  Application();
+  /// @param backend computation backend; kOpenCl falls back to CPU when no
+  /// suitable GPU is found
+  explicit Application(Backend backend = Backend::kAuto);
   Application(const Application&) = delete;
   Application& operator=(const Application&) = delete;
 
@@ -104,6 +107,7 @@ class Application {
   std::filesystem::path settings_file_;
   Settings settings_;
   Language language_;
+  Backend backend_ = Backend::kAuto;
   FractalParams fractal_;
   FractalRender renderer_;
   ColorMap colormap_;

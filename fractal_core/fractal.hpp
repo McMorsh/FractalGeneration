@@ -4,6 +4,7 @@
 #include <stop_token>
 #include <vector>
 
+#include "backend.hpp"
 #include "fractal_type.hpp"
 
 /// Computes the selected fractal for a window of the complex plane.
@@ -12,7 +13,9 @@ class Fractal {
   /// Creates a Mandelbrot set computation with the given iteration limit.
   explicit Fractal(int max_iterations);
   /// Creates a computation for the selected fractal.
-  Fractal(int max_iterations, const FractalParams& params);
+  /// @param backend kAuto prefers OpenCL, then AVX2, then scalar code
+  Fractal(int max_iterations, const FractalParams& params,
+          Backend backend = Backend::kAuto);
 
   /// Smoothed iteration count for the point real + i * imag.
   /// For Mandelbrot and Burning Ship z0 = 0 and the point defines c; for
@@ -32,6 +35,7 @@ class Fractal {
  private:
   int max_iterations_ = 0;
   FractalParams params_;
+  Backend backend_ = Backend::kAuto;
 };
 
 #endif  // FRACTALGENERATION_FRACTAL_CORE_FRACTAL_HPP_

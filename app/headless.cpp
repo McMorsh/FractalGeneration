@@ -1,7 +1,9 @@
 #include "headless.hpp"
 
 #include <cstdio>
+#include <string>
 
+#include "backend.hpp"
 #include "color_map.hpp"
 #include "fractal_type.hpp"
 #include "image_render.hpp"
@@ -33,10 +35,25 @@ int RunHeadless(const Options& options) {
     return 1;
   }
 
+  if (!BackendSupportsFractal(options.settings.backend,
+                              settings.fractal.type)) {
+    std::fprintf(stderr,
+                 "The OpenCL backend supports only the Mandelbrot set.\n");
+    return 1;
+  }
+  if (!IsBackendAvailable(options.settings.backend)) {
+    std::fprintf(stderr, "The OpenCL backend is not available.\n");
+    return 1;
+  }
+
+  const std::string backend =
+      GetBackendDescription(options.settings.backend, settings.fractal.type);
+
   std::printf("Rendering %dx%d, %d iterations, %s, palette %s...\n",
               settings.width, settings.height, settings.max_iterations,
               GetFractalTypeName(settings.fractal.type),
               colormap.GetPaletteName());
+  std::printf("%s\n", backend.c_str());
   std::fflush(stdout);
 
   if (!SaveFractalImage(options.output, settings, colormap)) {

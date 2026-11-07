@@ -79,7 +79,8 @@ void ImageExportWorker::Run(std::stop_token stop_token) {
     busy_.store(true, std::memory_order_relaxed);
 
     const RenderSettings& settings = request.settings;
-    const Fractal fractal(settings.max_iterations, settings.fractal);
+    const Fractal fractal(settings.max_iterations, settings.fractal,
+                          settings.backend);
     const std::vector<double> data =
         fractal.Generate(settings.width, settings.height, settings.center_x,
                          settings.center_y, settings.span, stop_token);

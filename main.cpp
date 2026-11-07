@@ -21,6 +21,6 @@ int main(int argc, char** argv) {
     return RunHeadless(options);
   }
 
-  Application app;
+  Application app(options.settings.backend);
   return app.Run();
 }

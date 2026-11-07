@@ -7,6 +7,7 @@
 #include <cstdlib>
 #include <string>
 
+#include "backend.hpp"
 #include "fractal_type.hpp"
 
 namespace {
@@ -55,6 +56,7 @@ void PrintUsage(const char* program) {
       "      --palette <name>      Ember, Ocean or Mono (default Ember)\n"
       "      --fractal <name>      mandelbrot, julia or burningship "
       "(default mandelbrot)\n"
+      "      --backend <name>      auto, cpu or opencl (default auto)\n"
       "  -h, --help                show this help\n",
       program);
 }
@@ -135,6 +137,15 @@ bool ParseArguments(int argc, char** argv, Options& options) {
     if (arg == "--fractal") {
       if (i + 1 >= argc ||
           !ParseFractalType(argv[i + 1], options.settings.fractal.type)) {
+        return false;
+      }
+      ++i;
+      continue;
+    }
+
+    if (arg == "--backend") {
+      if (i + 1 >= argc ||
+          !ParseBackend(argv[i + 1], options.settings.backend)) {
         return false;
       }
       ++i;

@@ -1,6 +1,7 @@
 #ifndef FRACTALGENERATION_RENDERER_RENDER_SETTINGS_HPP_
 #define FRACTALGENERATION_RENDERER_RENDER_SETTINGS_HPP_
 
+#include "backend.hpp"
 #include "fractal_type.hpp"
 #include "view.hpp"
 
@@ -15,6 +16,7 @@ struct RenderSettings {
   int height = kDefaultImageHeight;
   int max_iterations = 0;
   FractalParams fractal;
+  Backend backend = Backend::kAuto;
   double center_x = kInitialCenterX;
   double center_y = kInitialCenterY;
   double span = kInitialSpan;

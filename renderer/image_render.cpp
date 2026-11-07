@@ -63,7 +63,8 @@ bool SaveFractalImage(const std::string& path, const RenderSettings& settings,
   // Headless mode does not need raylib INFO messages.
   SetTraceLogLevel(LOG_WARNING);
 
-  const Fractal fractal(settings.max_iterations, settings.fractal);
+  const Fractal fractal(settings.max_iterations, settings.fractal,
+                        settings.backend);
   const std::vector<double> data =
       fractal.Generate(settings.width, settings.height, settings.center_x,
                        settings.center_y, settings.span);

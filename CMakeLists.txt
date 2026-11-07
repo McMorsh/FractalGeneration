@@ -77,6 +77,7 @@ add_executable(FractalGeneration
         app/application.cpp
         app/command_line.cpp
         app/headless.cpp
+        fractal_core/backend.cpp
         fractal_core/fractal.cpp
         fractal_core/fractal_opencl.cpp
         fractal_core/fractal_simd.cpp
@@ -146,6 +147,7 @@ if(BUILD_TESTING)
     find_package(GTest CONFIG REQUIRED)
 
     add_executable(fractal_tests
+            tests/backend_test.cpp
             tests/command_line_test.cpp
             tests/fractal_test.cpp
             tests/fractal_type_test.cpp
@@ -157,6 +159,7 @@ if(BUILD_TESTING)
             tests/settings_test.cpp
             tests/view_test.cpp
             tests/view_snapshot_test.cpp
+            fractal_core/backend.cpp
             fractal_core/fractal.cpp
             fractal_core/fractal_opencl.cpp
             fractal_core/fractal_simd.cpp

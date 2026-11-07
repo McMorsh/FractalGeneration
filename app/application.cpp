@@ -12,6 +12,7 @@
 
 #include <raylib.h>
 
+#include "backend.hpp"
 #include "color_map.hpp"
 #include "export_presets.hpp"
 #include "fractal_render.hpp"
@@ -70,12 +71,12 @@ std::string MakeScreenshotPath(const char* prefix, const char* suffix) {
 }
 
 std::string MakeInfo(const View& view, int max_iter, const char* palette,
-                     double render_ms, const char* export_label,
-                     const UiText& text) {
-  char buffer[256];
+                     const std::string& backend, double render_ms,
+                     const char* export_label, const UiText& text) {
+  char buffer[384];
   std::snprintf(buffer, sizeof(buffer), text.info_format,
-                kInitialSpan / view.GetSpan(), max_iter, palette, render_ms,
-                export_label);
+                kInitialSpan / view.GetSpan(), max_iter, palette,
+                backend.c_str(), render_ms, export_label);
   return buffer;
 }
 
@@ -141,10 +142,11 @@ int GetDisplayThreadCount() {
 
 }  // namespace
 
-Application::Application()
+Application::Application(Backend backend)
     : settings_file_(GetSettingsPath()),
       settings_(LoadSettings(settings_file_, GetLegacySettingsPath())),
       language_(settings_.language),
+      backend_(backend),
       fractal_(settings_.fractal),
       renderer_(kDefaultImageWidth, kDefaultImageHeight,
                 GetFractalTitle(fractal_.type, language_)),
@@ -162,6 +164,10 @@ Application::Application()
   render_state_.max_iter =
       ComputeIterationsForView(view_.GetSpan(), iteration_bonus_);
   ApplyWindowIcon();
+
+  if (!IsBackendAvailable(backend_)) {
+    TraceLog(LOG_WARNING, "OpenCL is not available, using the CPU backend");
+  }
 }
 
 int Application::Run() {
@@ -528,6 +534,7 @@ RenderSettings Application::MakeRenderSettings(int width, int height,
   settings.max_iterations =
       ComputeIterationsForView(view_.GetSpan(), iteration_bonus_);
   settings.fractal = fractal_;
+  settings.backend = backend_;
   settings.center_x = view_.GetCenterX();
   settings.center_y = view_.GetCenterY();
   settings.span = span;
@@ -628,6 +635,7 @@ void Application::DrawFrame() {
 
 std::string Application::BuildInfo() const {
   return MakeInfo(view_, render_state_.max_iter, colormap_.GetPaletteName(),
+                  GetBackendDescription(backend_, fractal_.type),
                   render_state_.render_ms,
                   kExportPresets[export_state_.index].label, *ui_);
 }
