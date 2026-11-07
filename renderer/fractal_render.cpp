@@ -7,6 +7,10 @@
 
 #include <raylib.h>
 
+#ifndef FRACTALGENERATION_VERSION
+#define FRACTALGENERATION_VERSION "dev"
+#endif
+
 namespace {
 
 constexpr int kMinWindowWidth = 640;
@@ -30,6 +34,8 @@ constexpr int kHelpKeyColumnWidth = 170;
 constexpr int kFontAtlasSize = 32;
 constexpr int kTitleFontSize = 24;
 constexpr int kHudFontSize = 16;
+constexpr int kVersionFontSize = 14;
+constexpr int kVersionMargin = 6;
 constexpr float kTextSpacing = 0.0f;
 constexpr int kJuliaPanelWidth = 340;
 constexpr int kJuliaPanelHeight = 104;
@@ -56,6 +62,7 @@ constexpr float kTrackAlpha = 0.22f;
 constexpr float kInfoAlpha = 0.72f;
 constexpr float kNoticeAlpha = 0.85f;
 constexpr float kFpsAlpha = 0.6f;
+constexpr float kVersionAlpha = 0.35f;
 constexpr float kHelpActionAlpha = 0.75f;
 constexpr float kSliderValueAlpha = 0.8f;
 constexpr float kJuliaActiveHandleRadius = 8.0f;
@@ -268,6 +275,14 @@ void DrawTopBar(const Font& font, int width, const std::string& info,
              kHudFontSize, Fade(RAYWHITE, kFpsAlpha));
 }
 
+void DrawVersion(const Font& font, int width, int height) {
+  const char* text = TextFormat("v%s", FRACTALGENERATION_VERSION);
+  const int text_width = MeasureUiText(font, text, kVersionFontSize);
+  DrawUiText(font, text, width - text_width - kVersionMargin,
+             height - kVersionFontSize - kVersionMargin, kVersionFontSize,
+             Fade(RAYWHITE, kVersionAlpha));
+}
+
 void DrawHelpPanel(const Font& font, int height, Language language) {
   // With a small height the panel moves close to the top line.
   const int panel_x = kHelpPanelMargin;
@@ -368,8 +383,8 @@ void FractalRender::Draw(const std::vector<double>& data,
 
 void FractalRender::Display(const std::string& info, const std::string& details,
                             const std::string& notice,
-                            const std::string& status, bool show_help,
-                            const JuliaControls& julia_controls,
+                            const std::string& status, bool show_hud,
+                            bool show_help, const JuliaControls& julia_controls,
                             const FractalParams& fractal) const {
   BeginDrawing();
   ClearBackground(BLACK);
@@ -381,6 +396,11 @@ void FractalRender::Display(const std::string& info, const std::string& details,
                           static_cast<float>(height_)};
   DrawTexturePro(texture_, source, dest, Vector2{0.0f, 0.0f}, 0.0f, WHITE);
 
+  if (!show_hud) {
+    EndDrawing();
+    return;
+  }
+
   DrawTopBar(font_, width_, info, details, notice, status, language_,
              fractal_type_);
 
@@ -391,6 +411,8 @@ void FractalRender::Display(const std::string& info, const std::string& details,
   if (julia_controls.visible) {
     DrawJuliaPanel(font_, width_, height_, julia_controls, fractal);
   }
+
+  DrawVersion(font_, width_, height_);
 
   EndDrawing();
 }

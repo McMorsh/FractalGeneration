@@ -61,6 +61,7 @@ class Application {
 
   struct UiState {
     bool show_help = true;
+    bool hud_visible = true;
     int active_julia_slider = -1;
     bool suppress_pan = false;
     std::string notice;
@@ -83,6 +84,7 @@ class Application {
   void HandlePasteKey();
   void HandleViewKeys();
   void HandleModeKeys();
+  void HandleDisplayKeys();
   void HandleExportKey();
 
   void UpdateRenderRequests();

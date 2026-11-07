@@ -35,7 +35,7 @@ struct HelpLineText {
 };
 
 /// Number of help panel lines.
-inline constexpr int kHelpLineCount = 12;
+inline constexpr int kHelpLineCount = 14;
 
 /// Fractal name for the window title and HUD.
 const char* GetFractalTitle(FractalType type, Language language);

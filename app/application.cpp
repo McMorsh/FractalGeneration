@@ -210,6 +210,13 @@ void Application::HandleMouseInput() {
 }
 
 void Application::HandleJuliaControls(float mouse_x, float mouse_y) {
+  // Hidden UI must not react to clicks on invisible sliders.
+  if (!ui_state_.hud_visible) {
+    ui_state_.active_julia_slider = -1;
+    ui_state_.suppress_pan = false;
+    return;
+  }
+
   // The sliders are shown only for Julia.
   if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
     ui_state_.suppress_pan = fractal_.type == FractalType::kJulia &&
@@ -271,6 +278,7 @@ void Application::HandleKeyboardInput() {
   HandleClipboardKeys();
   HandleViewKeys();
   HandleModeKeys();
+  HandleDisplayKeys();
 }
 
 void Application::HandleExportPresetKeys(bool shift_down) {
@@ -444,8 +452,21 @@ void Application::HandleViewKeys() {
     }
   }
 
-  if (IsKeyPressed(KEY_H)) {
+  if (ui_state_.hud_visible && IsKeyPressed(KEY_H)) {
     ui_state_.show_help = !ui_state_.show_help;
+  }
+}
+
+void Application::HandleDisplayKeys() {
+  if (IsKeyPressed(KEY_F11)) {
+    ui_state_.hud_visible = !ui_state_.hud_visible;
+    ui_state_.active_julia_slider = -1;
+    ui_state_.suppress_pan = false;
+  }
+
+  if ((IsKeyDown(KEY_LEFT_ALT) || IsKeyDown(KEY_RIGHT_ALT)) &&
+      (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_KP_ENTER))) {
+    ToggleFullscreen();
   }
 }
 
@@ -630,8 +651,9 @@ void Application::DrawFrame() {
                               view_.GetWidth() >= kHelpMinWindowWidth);
   const JuliaControls julia_controls{fractal_.type == FractalType::kJulia,
                                      ui_state_.active_julia_slider};
-  renderer_.Display(info, details, visible_notice, status, show_help_now,
-                    julia_controls, fractal_);
+  renderer_.Display(info, details, visible_notice, status,
+                    ui_state_.hud_visible, show_help_now, julia_controls,
+                    fractal_);
 }
 
 std::string Application::BuildInfo() const {

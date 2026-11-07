@@ -56,11 +56,13 @@ class FractalRender {
   /// @param details view center and the point under the cursor
   /// @param notice temporary notification
   /// @param status background render state
+  /// @param show_hud draws the top bar, help panel, Julia panel, and version
   /// @param show_help enables the help panel
   /// @param julia_controls Julia parameter c sliders
   void Display(const std::string& info, const std::string& details,
                const std::string& notice, const std::string& status,
-               bool show_help, const JuliaControls& julia_controls,
+               bool show_hud, bool show_help,
+               const JuliaControls& julia_controls,
                const FractalParams& fractal) const;
 
   /// Index of the c slider under the point.

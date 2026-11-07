@@ -104,6 +104,9 @@ target_link_libraries(FractalGeneration PRIVATE
         OpenMP::OpenMP_CXX
         Threads::Threads)
 
+target_compile_definitions(FractalGeneration PRIVATE
+        FRACTALGENERATION_VERSION="${PROJECT_VERSION}")
+
 if(OpenCL_FOUND)
     target_link_libraries(FractalGeneration PRIVATE OpenCL::OpenCL)
     target_compile_definitions(FractalGeneration PRIVATE FRACTALGENERATION_HAS_OPENCL=1)
