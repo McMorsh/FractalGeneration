@@ -138,6 +138,16 @@ png=4K
   --palette Ocean
 ```
 
+Пример Julia с другим параметром `c`:
+
+```bash
+./build-mingw/FractalGeneration.exe \
+  --output julia.png \
+  --fractal julia \
+  --julia-re -0.4 --julia-im 0.6 \
+  --span 4
+```
+
 | Опция | Значение |
 | --- | --- |
 | `-o, --output <file>` | путь к PNG, включает режим без окна |
@@ -148,17 +158,19 @@ png=4K
 | `--span <value>` | ширина окна в комплексных единицах, по умолчанию 3.5 |
 | `--palette <name>` | `Ember`, `Ocean` или `Mono` |
 | `--fractal <name>` | `mandelbrot`, `julia` или `burningship`, по умолчанию `mandelbrot` |
+| `--julia-re <value>` | реальная часть `c` для Julia, по умолчанию -0.8 |
+| `--julia-im <value>` | мнимая часть `c` для Julia, по умолчанию 0.156 |
 | `--backend <name>` | `auto`, `cpu` или `opencl`, по умолчанию `auto` |
 | `-h, --help` | справка |
 
 Имена палитр, фракталов и backend не зависят от регистра. Опции `--width`,
-`--height`, `--iterations`, `--center`, `--span`, `--palette` и `--fractal`
-действуют только в режиме без окна. `--backend` действует и в окне: выбранное
-устройство показано в HUD. OpenCL работает для всех трёх фракталов; в
-headless-режиме `--backend opencl` при отсутствии подходящей видеокарты
-завершается с ошибкой. В GUI параметр `c` у Julia меняется
-ползунками, а headless использует значение по умолчанию `-0.8 + 0.156i`. Для
-Burning Ship удобно `--center -0.5 0.5 --span 4`.
+`--height`, `--iterations`, `--center`, `--span`, `--palette`, `--fractal`,
+`--julia-re` и `--julia-im` действуют только в режиме без окна. `--backend`
+действует и в окне: выбранное устройство показано в HUD. OpenCL работает для
+всех трёх фракталов; в headless-режиме `--backend opencl` при отсутствии
+подходящей видеокарты завершается с ошибкой. В GUI параметр `c` у Julia
+меняется ползунками, а headless использует `-0.8 + 0.156i` или значения из
+`--julia-re` и `--julia-im`. Для Burning Ship удобно `--center -0.5 0.5 --span 4`.
 
 ## Как это работает
 

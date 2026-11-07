@@ -56,9 +56,12 @@ void PrintUsage(const char* program) {
       "      --palette <name>      Ember, Ocean or Mono (default Ember)\n"
       "      --fractal <name>      mandelbrot, julia or burningship "
       "(default mandelbrot)\n"
+      "      --julia-re <value>    Julia c real part (default %g)\n"
+      "      --julia-im <value>    Julia c imaginary part (default %g)\n"
       "      --backend <name>      auto, cpu or opencl (default auto)\n"
       "  -h, --help                show this help\n",
-      program, kInitialCenterX, kInitialCenterY, kInitialSpan);
+      program, kInitialCenterX, kInitialCenterY, kInitialSpan,
+      kDefaultJuliaReal, kDefaultJuliaImag);
 }
 
 bool ParseArguments(int argc, char** argv, Options& options) {
@@ -137,6 +140,24 @@ bool ParseArguments(int argc, char** argv, Options& options) {
     if (arg == "--fractal") {
       if (i + 1 >= argc ||
           !ParseFractalType(argv[i + 1], options.settings.fractal.type)) {
+        return false;
+      }
+      ++i;
+      continue;
+    }
+
+    if (arg == "--julia-re") {
+      if (i + 1 >= argc ||
+          !ParseDouble(argv[i + 1], options.settings.fractal.julia_real)) {
+        return false;
+      }
+      ++i;
+      continue;
+    }
+
+    if (arg == "--julia-im") {
+      if (i + 1 >= argc ||
+          !ParseDouble(argv[i + 1], options.settings.fractal.julia_imag)) {
         return false;
       }
       ++i;

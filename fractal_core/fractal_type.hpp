@@ -10,11 +10,15 @@ enum class FractalType {
   kBurningShip,
 };
 
+/// Default Julia parameter c.
+inline constexpr double kDefaultJuliaReal = -0.8;
+inline constexpr double kDefaultJuliaImag = 0.156;
+
 /// Fractal parameters: the fractal type and the Julia parameter c.
 struct FractalParams {
   FractalType type = FractalType::kMandelbrot;
-  double julia_real = -0.8;
-  double julia_imag = 0.156;
+  double julia_real = kDefaultJuliaReal;
+  double julia_imag = kDefaultJuliaImag;
 };
 
 /// Returns the next fractal type in a cycle.

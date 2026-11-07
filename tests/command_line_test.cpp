@@ -100,6 +100,24 @@ TEST(CommandLineTest, RejectsUnknownBackend) {
   EXPECT_FALSE(ParseArguments(args.GetArgc(), args.GetArgv(), options));
 }
 
+TEST(CommandLineTest, ParsesJuliaParameter) {
+  Args args{"FractalGeneration", "--fractal", "julia", "--julia-re", "-0.4",
+            "--julia-im",        "0.6"};
+  Options options;
+
+  ASSERT_TRUE(ParseArguments(args.GetArgc(), args.GetArgv(), options));
+  EXPECT_EQ(options.settings.fractal.type, FractalType::kJulia);
+  EXPECT_DOUBLE_EQ(options.settings.fractal.julia_real, -0.4);
+  EXPECT_DOUBLE_EQ(options.settings.fractal.julia_imag, 0.6);
+}
+
+TEST(CommandLineTest, RejectsInvalidJuliaParameter) {
+  Args args{"FractalGeneration", "--julia-im", "nan"};
+  Options options;
+
+  EXPECT_FALSE(ParseArguments(args.GetArgc(), args.GetArgv(), options));
+}
+
 TEST(CommandLineTest, RejectsUnknownOption) {
   Args args{"FractalGeneration", "--unknown"};
   Options options;
