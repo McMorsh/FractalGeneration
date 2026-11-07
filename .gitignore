@@ -47,7 +47,6 @@ CMakeUserPresets.json
 Thumbs.db
 
 # Личные заметки
-/HelpGit.md
-/Plan.md
+Notes/
 .clang-format
 .zed/
