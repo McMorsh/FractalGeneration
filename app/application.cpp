@@ -24,6 +24,7 @@
 #include "render_worker.hpp"
 #include "settings.hpp"
 #include "view.hpp"
+#include "view_defaults.hpp"
 #include "view_snapshot.hpp"
 
 namespace {

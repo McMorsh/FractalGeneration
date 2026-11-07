@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <cmath>
 
-#include "view.hpp"
+#include "view_defaults.hpp"
 
 namespace {
 

@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <cmath>
 
+#include "view_defaults.hpp"
+
 namespace {
 
 double SanitizeSpan(double span) {

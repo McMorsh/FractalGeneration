@@ -9,6 +9,7 @@
 
 #include "backend.hpp"
 #include "fractal_type.hpp"
+#include "view_defaults.hpp"
 
 namespace {
 
@@ -50,15 +51,14 @@ void PrintUsage(const char* program) {
       "      --width <pixels>      image width (default 1200)\n"
       "      --height <pixels>     image height (default 800)\n"
       "      --iterations <count>  maximum iterations (default: auto)\n"
-      "      --center <re> <im>    view center (default -0.6 0)\n"
-      "      --span <value>        view width in complex units (default "
-      "3.5)\n"
+      "      --center <re> <im>    view center (default %g %g)\n"
+      "      --span <value>        view width in complex units (default %g)\n"
       "      --palette <name>      Ember, Ocean or Mono (default Ember)\n"
       "      --fractal <name>      mandelbrot, julia or burningship "
       "(default mandelbrot)\n"
       "      --backend <name>      auto, cpu or opencl (default auto)\n"
       "  -h, --help                show this help\n",
-      program);
+      program, kInitialCenterX, kInitialCenterY, kInitialSpan);
 }
 
 bool ParseArguments(int argc, char** argv, Options& options) {

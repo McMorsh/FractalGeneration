@@ -10,6 +10,7 @@
 #include <string>
 
 #include "view.hpp"
+#include "view_defaults.hpp"
 
 namespace {
 

@@ -3,6 +3,7 @@
 #include <gtest/gtest.h>
 
 #include "view.hpp"
+#include "view_defaults.hpp"
 
 namespace {
 

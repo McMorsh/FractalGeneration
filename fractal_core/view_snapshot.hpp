@@ -4,6 +4,7 @@
 #include <string>
 
 #include "view.hpp"
+#include "view_defaults.hpp"
 
 /// View parameters stored in the clipboard or a note.
 struct ViewSnapshot {

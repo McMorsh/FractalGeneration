@@ -6,6 +6,7 @@
 #include <gtest/gtest.h>
 
 #include "view.hpp"
+#include "view_defaults.hpp"
 #include "view_snapshot.hpp"
 
 namespace {

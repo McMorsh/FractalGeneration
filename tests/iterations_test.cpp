@@ -1,41 +1,38 @@
 #include <gtest/gtest.h>
 
 #include "iterations.hpp"
-#include "view.hpp"
+#include "view_defaults.hpp"
 
 namespace {
 
-constexpr double kInitialViewSpan = 3.5;
-
 TEST(IterationsTest, InitialSpanUsesBaseIterations) {
-  EXPECT_EQ(ComputeIterationsForSpan(kInitialViewSpan), 150);
+  EXPECT_EQ(ComputeIterationsForSpan(kInitialSpan), 150);
 }
 
 TEST(IterationsTest, ViewAppliesBonus) {
-  EXPECT_EQ(ComputeIterationsForView(kInitialViewSpan, 100), 250);
+  EXPECT_EQ(ComputeIterationsForView(kInitialSpan, 100), 250);
 }
 
 TEST(IterationsTest, ViewClampsToLimits) {
-  EXPECT_EQ(ComputeIterationsForView(kInitialViewSpan, -1000), kMinIterations);
-  EXPECT_EQ(ComputeIterationsForView(kInitialViewSpan, 5000), kMaxIterations);
+  EXPECT_EQ(ComputeIterationsForView(kInitialSpan, -1000), kMinIterations);
+  EXPECT_EQ(ComputeIterationsForView(kInitialSpan, 5000), kMaxIterations);
 }
 
 TEST(IterationsTest, StepDownStopsAtFloor) {
   int next_bonus = 0;
 
-  EXPECT_FALSE(TryNextIterationBonus(kInitialViewSpan, -100, -kIterationStep,
-                                     next_bonus));
-  EXPECT_EQ(ComputeIterationsForView(kInitialViewSpan, -100), kMinIterations);
+  EXPECT_FALSE(
+      TryNextIterationBonus(kInitialSpan, -100, -kIterationStep, next_bonus));
+  EXPECT_EQ(ComputeIterationsForView(kInitialSpan, -100), kMinIterations);
 }
 
 TEST(IterationsTest, StepUpWorksFromFloor) {
   int next_bonus = 0;
 
-  ASSERT_TRUE(TryNextIterationBonus(kInitialViewSpan, -100, kIterationStep,
-                                    next_bonus));
+  ASSERT_TRUE(
+      TryNextIterationBonus(kInitialSpan, -100, kIterationStep, next_bonus));
   EXPECT_EQ(next_bonus, 0);
-  EXPECT_GT(ComputeIterationsForView(kInitialViewSpan, next_bonus),
-            kMinIterations);
+  EXPECT_GT(ComputeIterationsForView(kInitialSpan, next_bonus), kMinIterations);
 }
 
 TEST(IterationsTest, StepUpStopsAtCeiling) {
@@ -58,7 +55,7 @@ TEST(IterationsTest, StepDownWorksFromCeiling) {
 TEST(IterationsTest, ZeroDeltaDoesNothing) {
   int next_bonus = 0;
 
-  EXPECT_FALSE(TryNextIterationBonus(kInitialViewSpan, 0, 0, next_bonus));
+  EXPECT_FALSE(TryNextIterationBonus(kInitialSpan, 0, 0, next_bonus));
 }
 
 }  // namespace

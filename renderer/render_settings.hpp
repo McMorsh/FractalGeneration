@@ -3,7 +3,7 @@
 
 #include "backend.hpp"
 #include "fractal_type.hpp"
-#include "view.hpp"
+#include "view_defaults.hpp"
 
 /// Default frame width in pixels.
 inline constexpr int kDefaultImageWidth = 1200;
