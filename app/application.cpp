@@ -635,8 +635,7 @@ void Application::DrawFrame() {
 
 std::string Application::BuildInfo() const {
   return MakeInfo(view_, render_state_.max_iter, colormap_.GetPaletteName(),
-                  GetBackendDescription(backend_, fractal_.type),
-                  render_state_.render_ms,
+                  GetBackendDescription(backend_), render_state_.render_ms,
                   kExportPresets[export_state_.index].label, *ui_);
 }
 

@@ -2,6 +2,8 @@
 
 #include <cmath>
 
+#include "fractal_type.hpp"
+
 #if defined(__GNUC__) && (defined(__x86_64__) || defined(__i386__))
 #define FRACTALGENERATION_HAS_AVX2 1
 #include <immintrin.h>
@@ -11,16 +13,40 @@
 
 namespace {
 
-double MandelbrotValue(double real, double imag, int max_iterations) {
+double FractalValue(FractalType type, const FractalParams& params, double real,
+                    double imag, int max_iterations) {
   double zr = 0.0;
   double zi = 0.0;
+  double cr = real;
+  double ci = imag;
+  if (type == FractalType::kJulia) {
+    zr = real;
+    zi = imag;
+    cr = params.julia_real;
+    ci = params.julia_imag;
+  } else if (type == FractalType::kBurningShip) {
+    ci = -imag;
+  }
+
   int iterations = 0;
-  while (zr * zr + zi * zi <= 4.0 && iterations < max_iterations) {
-    const double zr2 = zr * zr;
-    const double zi2 = zi * zi;
-    zi = zr * zi + zi * zr + imag;
-    zr = zr2 - zi2 + real;
-    ++iterations;
+  if (type == FractalType::kBurningShip) {
+    while (zr * zr + zi * zi <= 4.0 && iterations < max_iterations) {
+      zr = std::abs(zr);
+      zi = std::abs(zi);
+      const double zr2 = zr * zr;
+      const double zi2 = zi * zi;
+      zi = zr * zi + zi * zr + ci;
+      zr = zr2 - zi2 + cr;
+      ++iterations;
+    }
+  } else {
+    while (zr * zr + zi * zi <= 4.0 && iterations < max_iterations) {
+      const double zr2 = zr * zr;
+      const double zi2 = zi * zi;
+      zi = zr * zi + zi * zr + ci;
+      zr = zr2 - zi2 + cr;
+      ++iterations;
+    }
   }
 
   if (iterations >= max_iterations) {
@@ -33,12 +59,18 @@ double MandelbrotValue(double real, double imag, int max_iterations) {
 }
 
 #if FRACTALGENERATION_HAS_AVX2
-__attribute__((target("avx2"))) void GenerateMandelbrotRowAvx2(
-    double start_real, double step, double imag, int width, int max_iterations,
-    const std::stop_token& stop_token, double* output) {
+
+template <FractalType kType>
+__attribute__((target("avx2"))) void GenerateRowAvx2(
+    const FractalParams& params, double start_real, double step, double imag,
+    int width, int max_iterations, const std::stop_token& stop_token,
+    double* output) {
+  (void)params;
+
   const __m256d four = _mm256_set1_pd(4.0);
   const __m256d all_ones = _mm256_castsi256_pd(_mm256_set1_epi64x(-1));
   const __m256i one = _mm256_set1_epi64x(1);
+  [[maybe_unused]] const __m256d sign_mask = _mm256_set1_pd(-0.0);
 
   int x = 0;
   for (; x + 4 <= width; x += 4) {
@@ -46,15 +78,32 @@ __attribute__((target("avx2"))) void GenerateMandelbrotRowAvx2(
       return;
     }
 
-    const __m256d cr =
-        _mm256_set_pd(start_real + (x + 3) * step, start_real + (x + 2) * step,
-                      start_real + (x + 1) * step, start_real + x * step);
-    const __m256d ci = _mm256_set1_pd(imag);
-    __m256d zr = _mm256_setzero_pd();
-    __m256d zi = _mm256_setzero_pd();
-    __m256i iterations = _mm256_setzero_si256();
+    __m256d cr;
+    __m256d ci;
+    __m256d zr;
+    __m256d zi;
+    if constexpr (kType == FractalType::kJulia) {
+      cr = _mm256_set1_pd(params.julia_real);
+      ci = _mm256_set1_pd(params.julia_imag);
+      zr = _mm256_set_pd(start_real + (x + 3) * step,
+                         start_real + (x + 2) * step,
+                         start_real + (x + 1) * step, start_real + x * step);
+      zi = _mm256_set1_pd(imag);
+    } else {
+      cr = _mm256_set_pd(start_real + (x + 3) * step,
+                         start_real + (x + 2) * step,
+                         start_real + (x + 1) * step, start_real + x * step);
+      ci = _mm256_set1_pd(kType == FractalType::kBurningShip ? -imag : imag);
+      zr = _mm256_setzero_pd();
+      zi = _mm256_setzero_pd();
+    }
 
+    __m256i iterations = _mm256_setzero_si256();
     for (int n = 0; n < max_iterations; ++n) {
+      if constexpr (kType == FractalType::kBurningShip) {
+        zr = _mm256_andnot_pd(sign_mask, zr);
+        zi = _mm256_andnot_pd(sign_mask, zi);
+      }
       const __m256d zr2 = _mm256_mul_pd(zr, zr);
       const __m256d zi2 = _mm256_mul_pd(zi, zi);
       const __m256d mag2 = _mm256_add_pd(zr2, zi2);
@@ -98,9 +147,11 @@ __attribute__((target("avx2"))) void GenerateMandelbrotRowAvx2(
     if ((x & 63) == 0 && stop_token.stop_requested()) {
       return;
     }
-    output[x] = MandelbrotValue(start_real + x * step, imag, max_iterations);
+    output[x] = FractalValue(kType, params, start_real + x * step, imag,
+                             max_iterations);
   }
 }
+
 #endif
 
 }  // namespace
@@ -119,16 +170,30 @@ bool fractal_simd::IsAvx2Available() {
 #endif
 }
 
-void fractal_simd::GenerateMandelbrotRow(double start_real, double step,
-                                         double imag, int width,
-                                         int max_iterations,
-                                         const std::stop_token& stop_token,
-                                         double* output) {
+void fractal_simd::GenerateRow(FractalType type, const FractalParams& params,
+                               double start_real, double step, double imag,
+                               int width, int max_iterations,
+                               const std::stop_token& stop_token,
+                               double* output) {
 #if FRACTALGENERATION_HAS_AVX2
   if (IsAvx2Available()) {
-    GenerateMandelbrotRowAvx2(start_real, step, imag, width, max_iterations,
-                              stop_token, output);
-    return;
+    switch (type) {
+      case FractalType::kMandelbrot:
+        GenerateRowAvx2<FractalType::kMandelbrot>(params, start_real, step,
+                                                  imag, width, max_iterations,
+                                                  stop_token, output);
+        return;
+      case FractalType::kJulia:
+        GenerateRowAvx2<FractalType::kJulia>(params, start_real, step, imag,
+                                             width, max_iterations, stop_token,
+                                             output);
+        return;
+      case FractalType::kBurningShip:
+        GenerateRowAvx2<FractalType::kBurningShip>(params, start_real, step,
+                                                   imag, width, max_iterations,
+                                                   stop_token, output);
+        return;
+    }
   }
 #endif
 
@@ -136,6 +201,7 @@ void fractal_simd::GenerateMandelbrotRow(double start_real, double step,
     if ((x & 63) == 0 && stop_token.stop_requested()) {
       return;
     }
-    output[x] = MandelbrotValue(start_real + x * step, imag, max_iterations);
+    output[x] =
+        FractalValue(type, params, start_real + x * step, imag, max_iterations);
   }
 }

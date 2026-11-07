@@ -7,7 +7,6 @@
 
 #include "fractal_opencl.hpp"
 #include "fractal_simd.hpp"
-#include "fractal_type.hpp"
 
 namespace {
 
@@ -80,23 +79,17 @@ const char* GetBackendName(Backend backend) {
   return "auto";
 }
 
-bool BackendSupportsFractal(Backend backend, FractalType type) {
-  return backend != Backend::kOpenCl || type == FractalType::kMandelbrot;
-}
-
 bool IsBackendAvailable(Backend backend) {
   return backend != Backend::kOpenCl || fractal_opencl::IsAvailable();
 }
 
-std::string GetBackendDescription(Backend backend, FractalType type) {
-  // Both OpenCL and AVX2 implement only the Mandelbrot set.
-  const bool mandelbrot = type == FractalType::kMandelbrot;
-  if (mandelbrot && backend != Backend::kCpu && fractal_opencl::IsAvailable()) {
+std::string GetBackendDescription(Backend backend) {
+  if (backend != Backend::kCpu && fractal_opencl::IsAvailable()) {
     const std::string name =
         NormalizeDeviceName(fractal_opencl::GetDeviceName());
     return name.empty() ? "OpenCL" : "OpenCL: " + name;
   }
-  if (mandelbrot && fractal_simd::IsAvx2Available()) {
+  if (fractal_simd::IsAvx2Available()) {
     return "CPU: AVX2";
   }
   return "CPU: scalar";

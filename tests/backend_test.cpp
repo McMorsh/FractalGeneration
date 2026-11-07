@@ -3,7 +3,6 @@
 #include <gtest/gtest.h>
 
 #include "backend.hpp"
-#include "fractal_type.hpp"
 
 namespace {
 
@@ -35,14 +34,10 @@ TEST(BackendTest, NamesRoundTrip) {
   }
 }
 
-TEST(BackendTest, OpenClSupportsOnlyMandelbrot) {
-  EXPECT_TRUE(BackendSupportsFractal(Backend::kAuto, FractalType::kJulia));
-  EXPECT_TRUE(BackendSupportsFractal(Backend::kCpu, FractalType::kBurningShip));
-  EXPECT_TRUE(
-      BackendSupportsFractal(Backend::kOpenCl, FractalType::kMandelbrot));
-  EXPECT_FALSE(BackendSupportsFractal(Backend::kOpenCl, FractalType::kJulia));
-  EXPECT_FALSE(
-      BackendSupportsFractal(Backend::kOpenCl, FractalType::kBurningShip));
+TEST(BackendTest, CpuDescriptionNamesImplementation) {
+  const std::string description = GetBackendDescription(Backend::kCpu);
+
+  EXPECT_TRUE(description == "CPU: AVX2" || description == "CPU: scalar");
 }
 
 }  // namespace

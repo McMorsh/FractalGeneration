@@ -35,19 +35,12 @@ int RunHeadless(const Options& options) {
     return 1;
   }
 
-  if (!BackendSupportsFractal(options.settings.backend,
-                              settings.fractal.type)) {
-    std::fprintf(stderr,
-                 "The OpenCL backend supports only the Mandelbrot set.\n");
-    return 1;
-  }
   if (!IsBackendAvailable(options.settings.backend)) {
     std::fprintf(stderr, "The OpenCL backend is not available.\n");
     return 1;
   }
 
-  const std::string backend =
-      GetBackendDescription(options.settings.backend, settings.fractal.type);
+  const std::string backend = GetBackendDescription(options.settings.backend);
 
   std::printf("Rendering %dx%d, %d iterations, %s, palette %s...\n",
               settings.width, settings.height, settings.max_iterations,

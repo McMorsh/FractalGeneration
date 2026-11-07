@@ -12,23 +12,21 @@
 
 namespace {
 
-void ExpectGenerateMatchesScalar(const Fractal& fractal) {
+void ExpectGenerateMatchesScalar(const Fractal& fractal, double center_x = -0.6,
+                                 double center_y = 0.0, double span = 3.5) {
   constexpr int kWidth = 32;
   constexpr int kHeight = 16;
-  constexpr double kCenterX = -0.6;
-  constexpr double kCenterY = 0.0;
-  constexpr double kSpan = 3.5;
   const std::vector<double> data =
-      fractal.Generate(kWidth, kHeight, kCenterX, kCenterY, kSpan);
+      fractal.Generate(kWidth, kHeight, center_x, center_y, span);
 
   ASSERT_EQ(data.size(), static_cast<std::size_t>(kWidth * kHeight));
-  const double scale = kSpan / kWidth;
+  const double scale = span / kWidth;
   const double half_width = kWidth * 0.5;
   const double half_height = kHeight * 0.5;
   for (int y = 0; y < kHeight; ++y) {
-    const double imag = kCenterY - (y - half_height) * scale;
+    const double imag = center_y - (y - half_height) * scale;
     for (int x = 0; x < kWidth; ++x) {
-      const double real = kCenterX + (x - half_width) * scale;
+      const double real = center_x + (x - half_width) * scale;
       EXPECT_NEAR(data[static_cast<std::size_t>(y) * kWidth + x],
                   fractal.Compute(real, imag), 1e-7)
           << "x=" << x << " y=" << y;
@@ -97,19 +95,61 @@ TEST(FractalTest, GenerateCornerEscapes) {
   EXPECT_LT(data.front(), 100.0);
 }
 
-TEST(FractalTest, CpuGenerateMatchesScalarValues) {
+TEST(FractalTest, CpuMandelbrotGenerateMatchesScalarValues) {
   const Fractal fractal(100, FractalParams{}, Backend::kCpu);
 
   ExpectGenerateMatchesScalar(fractal);
 }
 
-TEST(FractalTest, OpenClGenerateMatchesScalarValues) {
+TEST(FractalTest, OpenClMandelbrotGenerateMatchesScalarValues) {
   if (!fractal_opencl::IsAvailable()) {
     GTEST_SKIP() << "OpenCL is not available";
   }
   const Fractal fractal(100, FractalParams{}, Backend::kOpenCl);
 
   ExpectGenerateMatchesScalar(fractal);
+}
+
+TEST(FractalTest, CpuJuliaGenerateMatchesScalarValues) {
+  FractalParams params;
+  params.type = FractalType::kJulia;
+  params.julia_real = -0.8;
+  params.julia_imag = 0.156;
+  const Fractal fractal(100, params, Backend::kCpu);
+
+  ExpectGenerateMatchesScalar(fractal, 0.0, 0.0, 4.0);
+}
+
+TEST(FractalTest, OpenClJuliaGenerateMatchesScalarValues) {
+  if (!fractal_opencl::IsAvailable()) {
+    GTEST_SKIP() << "OpenCL is not available";
+  }
+  FractalParams params;
+  params.type = FractalType::kJulia;
+  params.julia_real = -0.8;
+  params.julia_imag = 0.156;
+  const Fractal fractal(100, params, Backend::kOpenCl);
+
+  ExpectGenerateMatchesScalar(fractal, 0.0, 0.0, 4.0);
+}
+
+TEST(FractalTest, CpuBurningShipGenerateMatchesScalarValues) {
+  FractalParams params;
+  params.type = FractalType::kBurningShip;
+  const Fractal fractal(100, params, Backend::kCpu);
+
+  ExpectGenerateMatchesScalar(fractal, -0.5, 0.5, 4.0);
+}
+
+TEST(FractalTest, OpenClBurningShipGenerateMatchesScalarValues) {
+  if (!fractal_opencl::IsAvailable()) {
+    GTEST_SKIP() << "OpenCL is not available";
+  }
+  FractalParams params;
+  params.type = FractalType::kBurningShip;
+  const Fractal fractal(100, params, Backend::kOpenCl);
+
+  ExpectGenerateMatchesScalar(fractal, -0.5, 0.5, 4.0);
 }
 
 TEST(FractalTest, GenerateIsDeterministic) {

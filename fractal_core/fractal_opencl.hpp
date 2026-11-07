@@ -5,9 +5,11 @@
 #include <string>
 #include <vector>
 
+#include "fractal_type.hpp"
+
 namespace fractal_opencl {
 
-/// Returns true if an OpenCL GPU with FP64 support was found and the kernel
+/// Returns true if an OpenCL GPU with FP64 support was found and the kernels
 /// compiled successfully.
 bool IsAvailable();
 
@@ -15,12 +17,12 @@ bool IsAvailable();
 /// OpenCL is unavailable.
 std::string GetDeviceName();
 
-/// Computes the Mandelbrot set on the GPU.
+/// Computes the selected fractal on the GPU.
 /// @return an empty vector if OpenCL is unavailable or the computation failed.
-std::vector<double> GenerateMandelbrot(int width, int height, double center_x,
-                                       double center_y, double span,
-                                       int max_iterations,
-                                       const std::stop_token& stop_token);
+std::vector<double> Generate(const FractalParams& params, int width, int height,
+                             double center_x, double center_y, double span,
+                             int max_iterations,
+                             const std::stop_token& stop_token);
 
 }  // namespace fractal_opencl
 

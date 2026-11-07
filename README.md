@@ -19,7 +19,7 @@
 - копирование и вставка вида через буфер обмена (`C` и `V`);
 - автоматический подбор числа итераций при зуме и ручная подстройка;
 - параллельный расчёт через OpenMP и фоновый поток, интерфейс не блокируется;
-- расчёт на GPU через OpenCL с откатом на AVX2 и скалярный код;
+- расчёт на GPU через OpenCL для всех трёх фракталов, с откатом на AVX2 и скалярный код;
 - выбор backend через `--backend auto|cpu|opencl`, активное устройство показано в HUD;
 - предпросмотр в половинном разрешении во время движения, полный кадр после остановки;
 - изменение размера окна с пересчётом кадра;
@@ -154,9 +154,9 @@ png=4K
 Имена палитр, фракталов и backend не зависят от регистра. Опции `--width`,
 `--height`, `--iterations`, `--center`, `--span`, `--palette` и `--fractal`
 действуют только в режиме без окна. `--backend` действует и в окне: выбранное
-устройство показано в HUD. OpenCL реализован только для Мандельброта; в
-headless-режиме `--backend opencl` для других фракталов и при отсутствии
-подходящей видеокарты завершается с ошибкой. В GUI параметр `c` у Julia меняется
+устройство показано в HUD. OpenCL работает для всех трёх фракталов; в
+headless-режиме `--backend opencl` при отсутствии подходящей видеокарты
+завершается с ошибкой. В GUI параметр `c` у Julia меняется
 ползунками, а headless использует значение по умолчанию `-0.8 + 0.156i`. Для
 Burning Ship удобно `--center -0.5 0.5 --span 4`.
 
@@ -292,8 +292,8 @@ ctest --test-dir build --output-on-failure
 | --- | --- |
 | `fractal_core/fractal.hpp`, `fractal_core/fractal.cpp` | Расчёт выбранного фрактала через OpenCL, AVX2 или скалярный код |
 | `fractal_core/backend.hpp`, `fractal_core/backend.cpp` | Выбор и описание вычислительного backend |
-| `fractal_core/fractal_opencl.hpp`, `fractal_core/fractal_opencl.cpp` | OpenCL-бэкенд для Мандельброта |
-| `fractal_core/fractal_simd.hpp`, `fractal_core/fractal_simd.cpp` | AVX2-путь для Мандельброта |
+| `fractal_core/fractal_opencl.hpp`, `fractal_core/fractal_opencl.cpp` | OpenCL-бэкенд для всех фракталов |
+| `fractal_core/fractal_simd.hpp`, `fractal_core/fractal_simd.cpp` | AVX2-путь для всех фракталов |
 | `fractal_core/fractal_type.hpp`, `fractal_core/fractal_type.cpp` | Тип фрактала, параметры Julia и разбор имени |
 | `fractal_core/view.hpp`, `fractal_core/view.cpp` | Камера: зум, панорамирование и координаты |
 | `fractal_core/iterations.hpp`, `fractal_core/iterations.cpp` | Автоматическое число итераций и ручная подстройка |

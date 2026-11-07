@@ -68,10 +68,10 @@ std::vector<double> Fractal::Generate(int width, int height, double center_x,
     return {};
   }
 
-  if (params_.type == FractalType::kMandelbrot && backend_ != Backend::kCpu &&
-      fractal_opencl::IsAvailable()) {
-    std::vector<double> gpu = fractal_opencl::GenerateMandelbrot(
-        width, height, center_x, center_y, span, max_iterations_, stop_token);
+  if (backend_ != Backend::kCpu && fractal_opencl::IsAvailable()) {
+    std::vector<double> gpu =
+        fractal_opencl::Generate(params_, width, height, center_x, center_y,
+                                 span, max_iterations_, stop_token);
     if (!gpu.empty()) {
       return gpu;
     }
@@ -86,8 +86,7 @@ std::vector<double> Fractal::Generate(int width, int height, double center_x,
   const double scale = span / width;
   const double half_width = width * 0.5;
   const double half_height = height * 0.5;
-  const bool use_simd = params_.type == FractalType::kMandelbrot &&
-                        fractal_simd::IsAvx2Available();
+  const bool use_simd = fractal_simd::IsAvx2Available();
   const double start_real = center_x - half_width * scale;
 
   // Rows are independent, so the outer loop is parallelized.
@@ -100,8 +99,8 @@ std::vector<double> Fractal::Generate(int width, int height, double center_x,
     const double imag = center_y - (y - half_height) * scale;
     double* row = &result[static_cast<std::size_t>(y) * width];
     if (use_simd) {
-      fractal_simd::GenerateMandelbrotRow(start_real, scale, imag, width,
-                                          max_iterations_, stop_token, row);
+      fractal_simd::GenerateRow(params_.type, params_, start_real, scale, imag,
+                                width, max_iterations_, stop_token, row);
     } else {
       for (int x = 0; x < width; x++) {
         // Cancellation is checked rarely to keep the inner loop fast.
