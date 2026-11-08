@@ -46,7 +46,7 @@ constexpr UiText kEnglishText = {
 
 constexpr HelpLineText kRussianHelp[] = {
     {"Колесо, + / -", "управление масштабом"},
-    {"Стрелки, ЛКМ", "панорама"},
+    {"Стрелки, ЛКМ", "перемещение"},
     {"[ / ]", "итерации"},
     {"P", "палитра"},
     {"C / V", "копировать / вставить"},
@@ -63,7 +63,7 @@ constexpr HelpLineText kRussianHelp[] = {
 
 constexpr HelpLineText kEnglishHelp[] = {
     {"Wheel, + / -", "zoom"},
-    {"Arrows, LMB", "pan"},
+    {"Arrows, LMB", "move"},
     {"[ / ]", "iterations"},
     {"P", "palette"},
     {"C / V", "copy / paste"},
