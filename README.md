@@ -343,7 +343,6 @@ ctest --test-dir build --output-on-failure
 - кэш последних кадров для возврата к уже посещённому виду;
 - более глубокий зум через perturbation theory;
 - сохранение выбранного backend в настройках;
-- готовые сборки в GitHub Releases;
 - Linux-пакет AppImage или Flatpak.
 
 ## Лицензия

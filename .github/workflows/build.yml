@@ -28,6 +28,7 @@ jobs:
           update: true
           install: >-
             git
+            zip
             mingw-w64-ucrt-x86_64-gcc
             mingw-w64-ucrt-x86_64-cmake
             mingw-w64-ucrt-x86_64-ninja
@@ -45,3 +46,61 @@ jobs:
 
       - name: Test
         run: ctest --preset mingw-release
+
+      - name: Verify version
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          tag_version="${GITHUB_REF_NAME#v}"
+          app_version="$(./build-mingw/FractalGeneration.exe --version | awk '{print $2}')"
+          if [ "$tag_version" != "$app_version" ]; then
+            echo "Tag $tag_version does not match app version $app_version"
+            exit 1
+          fi
+
+      - name: Package
+        run: |
+          version="$(./build-mingw/FractalGeneration.exe --version | awk '{print $2}')"
+          mkdir -p dist/FractalGeneration
+          cp build-mingw/FractalGeneration.exe dist/FractalGeneration/
+          cp build-mingw/libgcc_s_seh-1.dll build-mingw/libstdc++-6.dll \
+            build-mingw/libwinpthread-1.dll build-mingw/libgomp-1.dll \
+            build-mingw/libraylib.dll build-mingw/glfw3.dll \
+            dist/FractalGeneration/
+          if [ -f build-mingw/OpenCL.dll ]; then
+            cp build-mingw/OpenCL.dll dist/FractalGeneration/
+          fi
+          cp -r build-mingw/assets dist/FractalGeneration/assets
+          cp -r docs dist/FractalGeneration/docs
+          cp README.md LICENSE CHANGELOG.md dist/FractalGeneration/
+          cd dist
+          zip -r "FractalGeneration-v${version}-win-x64.zip" FractalGeneration
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: FractalGeneration-windows-x64
+          path: dist/FractalGeneration-v*-win-x64.zip
+
+  release:
+    name: GitHub Release
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: FractalGeneration-windows-x64
+
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: >-
+          gh release create "${GITHUB_REF_NAME}"
+          FractalGeneration-v*-win-x64.zip
+          --repo "${GITHUB_REPOSITORY}"
+          --title "FractalGeneration ${GITHUB_REF_NAME}"
+          --generate-notes
