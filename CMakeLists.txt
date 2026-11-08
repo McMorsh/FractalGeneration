@@ -9,7 +9,14 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # compile_commands.json для clangd
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+if(MINGW)
+    get_filename_component(MINGW_BIN_DIR "${CMAKE_CXX_COMPILER}" DIRECTORY)
+    get_filename_component(MINGW_PREFIX "${MINGW_BIN_DIR}" DIRECTORY)
+    list(APPEND CMAKE_PREFIX_PATH "${MINGW_PREFIX}")
+endif()
+
 find_package(raylib CONFIG REQUIRED)
+find_package(GIF REQUIRED)
 find_package(OpenMP REQUIRED)
 find_package(Threads REQUIRED)
 
@@ -86,6 +93,8 @@ add_executable(FractalGeneration
         fractal_core/view.cpp
         fractal_core/view_snapshot.cpp
         renderer/fractal_render.cpp
+        renderer/gif_writer.cpp
+        renderer/animation_worker.cpp
         renderer/bookmarks.cpp
         renderer/image_export_worker.cpp
         renderer/image_render.cpp
@@ -98,10 +107,12 @@ target_include_directories(FractalGeneration PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/app
         ${CMAKE_CURRENT_SOURCE_DIR}/fractal_core
         ${CMAKE_CURRENT_SOURCE_DIR}/color_map
-        ${CMAKE_CURRENT_SOURCE_DIR}/renderer)
+        ${CMAKE_CURRENT_SOURCE_DIR}/renderer
+        ${GIF_INCLUDE_DIR})
 
 target_link_libraries(FractalGeneration PRIVATE
         raylib
+        ${GIF_LIBRARIES}
         OpenMP::OpenMP_CXX
         Threads::Threads)
 
@@ -139,7 +150,7 @@ add_custom_command(TARGET FractalGeneration POST_BUILD
                 "$<TARGET_FILE_DIR:FractalGeneration>/assets/OFL.txt"
         COMMENT "Copying assets")
 
-copy_mingw_runtime_dlls(FractalGeneration)
+copy_mingw_runtime_dlls(FractalGeneration libgif-7.dll)
 
 if(OpenCL_FOUND)
     copy_mingw_runtime_dlls(FractalGeneration OpenCL.dll)
@@ -151,9 +162,11 @@ if(BUILD_TESTING)
     find_package(GTest CONFIG REQUIRED)
 
     add_executable(fractal_tests
+            tests/animation_test.cpp
             tests/backend_test.cpp
             tests/bookmarks_test.cpp
             tests/command_line_test.cpp
+            tests/gif_writer_test.cpp
             tests/fractal_test.cpp
             tests/fractal_type_test.cpp
             tests/color_map_test.cpp
@@ -177,17 +190,21 @@ if(BUILD_TESTING)
             renderer/image_render.cpp
             renderer/localization.cpp
             renderer/settings.cpp
-            renderer/bookmarks.cpp)
+            renderer/bookmarks.cpp
+            renderer/gif_writer.cpp
+            renderer/animation_worker.cpp)
 
     target_include_directories(fractal_tests PRIVATE
             ${CMAKE_CURRENT_SOURCE_DIR}/app
             ${CMAKE_CURRENT_SOURCE_DIR}/fractal_core
             ${CMAKE_CURRENT_SOURCE_DIR}/color_map
-            ${CMAKE_CURRENT_SOURCE_DIR}/renderer)
+            ${CMAKE_CURRENT_SOURCE_DIR}/renderer
+            ${GIF_INCLUDE_DIR})
 
     target_link_libraries(fractal_tests PRIVATE
             GTest::gtest_main
             raylib
+            ${GIF_LIBRARIES}
             OpenMP::OpenMP_CXX)
 
     target_compile_definitions(fractal_tests PRIVATE
@@ -199,7 +216,7 @@ if(BUILD_TESTING)
     endif()
 
     enable_project_warnings(fractal_tests)
-    copy_mingw_runtime_dlls(fractal_tests libgtest.dll libgtest_main.dll)
+    copy_mingw_runtime_dlls(fractal_tests libgtest.dll libgtest_main.dll libgif-7.dll)
 
     if(OpenCL_FOUND)
         copy_mingw_runtime_dlls(fractal_tests OpenCL.dll)

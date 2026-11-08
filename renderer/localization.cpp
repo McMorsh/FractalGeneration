@@ -30,6 +30,9 @@ constexpr UiText kRussianText = {
     "Название закладки",
     "Enter сохранить   |   Esc отмена",
     "Не удалось сохранить закладки",
+    "анимация %d/%d",
+    "Анимация отменена",
+    "Не удалось сохранить анимацию",
 };
 
 constexpr UiText kEnglishText = {
@@ -56,6 +59,9 @@ constexpr UiText kEnglishText = {
     "Bookmark name",
     "Enter to save   |   Esc to cancel",
     "Could not save bookmarks",
+    "animation %d/%d",
+    "Animation cancelled",
+    "Could not save animation",
 };
 
 constexpr HelpLineText kRussianHelp[] = {
@@ -66,7 +72,7 @@ constexpr HelpLineText kRussianHelp[] = {
     {"Shift + 1...9", "сохранить закладку"},
     {"P", "палитра"},
     {"C / V", "копировать / вставить"},
-    {"F2", "сохранить PNG"},
+    {"F2 / F3", "PNG / GIF"},
     {"Shift + влево / вправо", "размер PNG"},
     {"F11", "скрыть интерфейс"},
     {"Alt + Enter", "полный экран"},
@@ -85,7 +91,7 @@ constexpr HelpLineText kEnglishHelp[] = {
     {"Shift + 1...9", "save bookmark"},
     {"P", "palette"},
     {"C / V", "copy / paste"},
-    {"F2", "save PNG"},
+    {"F2 / F3", "PNG / GIF"},
     {"Shift + Left / Right", "PNG size"},
     {"F11", "toggle HUD"},
     {"Alt + Enter", "fullscreen"},

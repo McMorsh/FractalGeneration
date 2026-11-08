@@ -1,3 +1,5 @@
+#include <array>
+
 #include <gtest/gtest.h>
 #include <raylib.h>
 
@@ -97,6 +99,55 @@ TEST(ColorMapTest, PaletteChangeChangesColor) {
   const Color ocean = map.GetColor(10.0, 150);
 
   EXPECT_TRUE(ember.r != ocean.r || ember.g != ocean.g || ember.b != ocean.b);
+}
+
+TEST(ColorMapTest, CyclePaletteSpansTheCycle) {
+  const ColorMap map;
+  std::array<Color, 8> colors{};
+
+  map.GetCyclePalette(colors.data(), static_cast<int>(colors.size()));
+
+  bool varied = false;
+  for (const Color& color : colors) {
+    if (color.r != colors[0].r || color.g != colors[0].g ||
+        color.b != colors[0].b) {
+      varied = true;
+    }
+  }
+  EXPECT_TRUE(varied);
+}
+
+TEST(ColorMapTest, PaletteIndexKeepsInteriorBlack) {
+  const ColorMap map;
+
+  EXPECT_EQ(map.GetPaletteIndex(150.0, 150, 255), 0);
+  EXPECT_EQ(map.GetPaletteIndex(151.0, 150, 255), 0);
+}
+
+TEST(ColorMapTest, PaletteIndexStaysInRange) {
+  const ColorMap map;
+
+  for (const double iter : {-5.0, 0.0, 1.0, 74.9, 149.9}) {
+    const int index = map.GetPaletteIndex(iter, 150, 255);
+    EXPECT_GE(index, 1);
+    EXPECT_LE(index, 255);
+  }
+}
+
+TEST(ColorMapTest, CycleLengthGrowsWithIterations) {
+  const ColorMap map;
+
+  EXPECT_DOUBLE_EQ(map.GetCycleLength(150), 20.0);
+  EXPECT_DOUBLE_EQ(map.GetCycleLength(5000), 200.0);
+}
+
+TEST(ColorMapTest, ExplicitCycleChangesBandPosition) {
+  const ColorMap map;
+
+  const int fast = map.GetPaletteIndex(100.0, 5000, 255, 20.0);
+  const int slow = map.GetPaletteIndex(100.0, 5000, 255, 200.0);
+
+  EXPECT_NE(fast, slow);
 }
 
 }  // namespace

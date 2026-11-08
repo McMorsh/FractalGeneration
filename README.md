@@ -5,8 +5,8 @@
 
 Интерактивный визуализатор фракталов на C++20. Множества Мандельброта, Жюлиа
 и Burning Ship считаются параллельно через OpenMP и выводятся в окне raylib.
-Есть плавная раскраска, зум к курсору, фоновый расчёт кадров и экспорт PNG
-до 8K.
+Есть плавная раскраска, зум к курсору, фоновый расчёт кадров, экспорт PNG
+до 8K и GIF-анимация зума.
 
 ![Общий вид множества Мандельброта](docs/preview.png)
 
@@ -24,6 +24,8 @@
 - предпросмотр в половинном разрешении во время движения, полный кадр после остановки;
 - изменение размера окна с пересчётом кадра;
 - экспорт PNG без интерфейса в FHD, 2K, 4K или 8K;
+- закладки видов: `1`...`9` и `Shift + 1`...`9`;
+- экспорт зума в GIF по `F3`: 1280x720, 25 fps, 5 секунд;
 - русский и английский интерфейс, выбор языка запоминается;
 - рендер PNG без окна через командную строку;
 - пересчёт только при изменении вида, а не каждый кадр.
@@ -46,6 +48,7 @@
 | Сменить фрактал | `T` |
 | Сбросить вид | `R` |
 | Сохранить PNG в выбранном разрешении | `F2` |
+| Экспортировать зум в GIF | `F3` |
 | Выбрать разрешение PNG | `Shift + влево / вправо` |
 | Скрыть или показать интерфейс | `F11` |
 | Полноэкранный режим | `Alt + Enter` |
@@ -88,6 +91,19 @@
 Кадр сохраняет вертикальный охват окна и расширяется по горизонтали до 16:9.
 Интерфейс в PNG не попадает. На 8K расчёт занимает заметно больше времени
 и требует больше памяти.
+
+### Анимация GIF
+
+`F3` запускает фоновый экспорт зума к точке под курсором в GIF. Параметры:
+1280x720, 25 fps, 5 секунд и примерно 1000x приближения от текущего вида.
+Файл называется `zoom_ГГГГММДД_ЧЧММСС.gif` и сохраняется в текущий каталог.
+
+Число итераций и длина цветового цикла фиксируются на всю анимацию, поэтому
+палитра не мигает. Кадр сохраняет вертикальный охват окна и расширяется по
+горизонтали до 16:9, как при экспорте PNG. Если курсор стоит внутри множества,
+зум уйдёт в чёрную внутренность: наводите его на границу или интересную
+область. Повторное `F3` отменяет экспорт, прогресс виден в HUD. На глубоком
+зуме кадры считаются долго, а файл получается больше.
 
 ### Буфер обмена
 
@@ -263,7 +279,7 @@ pacman -Syu
 pacman -S --needed git mingw-w64-ucrt-x86_64-gcc \
   mingw-w64-ucrt-x86_64-cmake mingw-w64-ucrt-x86_64-ninja \
   mingw-w64-ucrt-x86_64-raylib mingw-w64-ucrt-x86_64-libgomp \
-  mingw-w64-ucrt-x86_64-gtest \
+  mingw-w64-ucrt-x86_64-gtest mingw-w64-ucrt-x86_64-giflib \
   mingw-w64-ucrt-x86_64-opencl-headers mingw-w64-ucrt-x86_64-opencl-icd
 ```
 
@@ -298,11 +314,11 @@ sudo apt update
 sudo apt install build-essential cmake git curl zip unzip tar pkg-config \
   libgl1-mesa-dev libx11-dev libxrandr-dev libxi-dev libxcursor-dev \
   libxinerama-dev libasound2-dev libwayland-dev libxkbcommon-dev wayland-protocols \
-  ocl-icd-opencl-dev
+  libgif-dev ocl-icd-opencl-dev
 
 git clone https://github.com/microsoft/vcpkg "$HOME/vcpkg"
 "$HOME/vcpkg/bootstrap-vcpkg.sh"
-"$HOME/vcpkg/vcpkg" install raylib gtest
+"$HOME/vcpkg/vcpkg" install raylib gtest giflib
 
 cmake -B build -S . -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_TOOLCHAIN_FILE="$HOME/vcpkg/scripts/buildsystems/vcpkg.cmake"
@@ -349,6 +365,9 @@ ctest --test-dir build --output-on-failure
 | `renderer/image_render.hpp`, `renderer/image_render.cpp` | Рендер и сохранение PNG без окна |
 | `renderer/render_settings.hpp` | Общие параметры кадра для оконного и headless-рендера |
 | `renderer/image_export_worker.hpp`, `renderer/image_export_worker.cpp` | Фоновый экспорт PNG в выбранном разрешении |
+| `renderer/gif_writer.hpp`, `renderer/gif_writer.cpp` | Запись GIF89a с общей палитрой |
+| `renderer/animation_worker.hpp`, `renderer/animation_worker.cpp` | Фоновый экспорт анимации зума |
+| `renderer/bookmarks.hpp`, `renderer/bookmarks.cpp` | Закладки видов и файл `bookmarks.txt` |
 | `renderer/localization.hpp`, `renderer/localization.cpp` | Строки русского и английского интерфейса |
 | `renderer/render_worker.hpp`, `renderer/render_worker.cpp` | Фоновый расчёт кадров |
 | `renderer/settings.hpp`, `renderer/settings.cpp` | Сохранение и чтение настроек интерфейса |

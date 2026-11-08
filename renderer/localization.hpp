@@ -33,6 +33,9 @@ struct UiText {
   const char* bookmark_prompt_title;
   const char* bookmark_prompt_hint;
   const char* bookmark_save_failed;
+  const char* animation_status_format;
+  const char* animation_cancelled;
+  const char* animation_failed;
 };
 
 /// Help panel line: keys on the left, action on the right.

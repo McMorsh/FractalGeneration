@@ -13,6 +13,7 @@
 
 #include <raylib.h>
 
+#include "animation_worker.hpp"
 #include "backend.hpp"
 #include "bookmarks.hpp"
 #include "color_map.hpp"
@@ -50,7 +51,14 @@ constexpr double kNoticeDuration = 3.0;
 constexpr double kMillisecondsPerSecond = 1000.0;
 constexpr std::size_t kBookmarkNameMaxLength = 32;
 
-std::string MakeScreenshotPath(const char* prefix, const char* suffix) {
+constexpr int kAnimationWidth = 1280;
+constexpr int kAnimationHeight = 720;
+constexpr int kAnimationFrameCount = 125;
+constexpr int kAnimationDelayCs = 4;
+constexpr double kAnimationZoomFactor = 1000.0;
+
+std::string MakeScreenshotPath(const char* prefix, const char* suffix,
+                               const char* extension = ".png") {
   const std::time_t now = std::time(nullptr);
 
   std::tm local{};
@@ -70,7 +78,7 @@ std::string MakeScreenshotPath(const char* prefix, const char* suffix) {
   }
 
   path += suffix;
-  path += ".png";
+  path += extension;
   return path;
 }
 
@@ -198,6 +206,7 @@ Application::Application(Backend backend)
                             renderer_.GetHeight())),
       render_worker_(GetDisplayThreadCount()),
       export_worker_(GetExportThreadCount()),
+      animation_worker_(std::max(1, GetTotalThreadCount() / 2)),
       ui_(&GetUiText(language_)),
       render_state_(view_),
       export_state_(GetExportPresetIndex(settings_.export_preset)) {
@@ -687,6 +696,60 @@ void Application::HandleExportKey() {
   if (IsKeyPressed(KEY_F2)) {
     RequestPresetExport();
   }
+  if (IsKeyPressed(KEY_F3)) {
+    HandleAnimationKey();
+  }
+}
+
+void Application::HandleAnimationKey() {
+  if (animation_state_.active) {
+    animation_worker_.Cancel();
+    return;
+  }
+
+  const Vector2 mouse = GetMousePosition();
+  const ComplexPoint anchor = view_.GetPointAt(mouse.x, mouse.y);
+  const int view_width = std::max(view_.GetWidth(), 1);
+  const int view_height = std::max(view_.GetHeight(), 1);
+
+  // Keep the vertical extent of the window and extend to 16:9, as PNG does.
+  const double start_span =
+      std::clamp(view_.GetSpan() * view_height / view_width * kAnimationWidth /
+                     kAnimationHeight,
+                 kMinSpan, kMaxSpan);
+  const double final_span =
+      std::max(start_span / kAnimationZoomFactor, kMinSpan);
+
+  RenderSettings settings =
+      MakeRenderSettings(kAnimationWidth, kAnimationHeight, start_span);
+  // A fixed count keeps the color cycle stable for the whole animation.
+  settings.max_iterations =
+      ComputeIterationsForView(final_span, iteration_bonus_);
+  const int color_iterations =
+      ComputeIterationsForView(view_.GetSpan(), iteration_bonus_);
+
+  // The cursor point expressed in pixels of the first animation frame.
+  const double scale = start_span / kAnimationWidth;
+  const double anchor_x =
+      (anchor.real - view_.GetCenterX()) / scale + kAnimationWidth * 0.5;
+  const double anchor_y =
+      (view_.GetCenterY() - anchor.imag) / scale + kAnimationHeight * 0.5;
+
+  AnimationRequest request;
+  request.id = animation_state_.request_id + 1;
+  request.settings = settings;
+  request.anchor_x = anchor_x;
+  request.anchor_y = anchor_y;
+  request.final_span = final_span;
+  request.frame_count = kAnimationFrameCount;
+  request.delay_cs = kAnimationDelayCs;
+  request.color_cycle = colormap_.GetCycleLength(color_iterations);
+  request.path = MakeScreenshotPath("zoom", "", ".gif");
+  request.colormap = colormap_;
+
+  animation_state_.request_id = request.id;
+  animation_state_.active = true;
+  animation_worker_.Request(request);
 }
 
 void Application::UpdateRenderRequests() {
@@ -700,6 +763,7 @@ void Application::UpdateRenderRequests() {
 void Application::PollWorkers() {
   HandleRenderResult();
   HandleExportResult();
+  HandleAnimationResult();
 }
 
 void Application::HandleRenderResult() {
@@ -737,6 +801,26 @@ void Application::HandleExportResult() {
     ui_state_.notice_time = GetTime();
   }
   export_state_.request_id = 0;
+}
+
+void Application::HandleAnimationResult() {
+  AnimationResult result;
+  if (!animation_worker_.TryTake(result)) {
+    return;
+  }
+  if (result.id != animation_state_.request_id) {
+    return;
+  }
+
+  animation_state_.active = false;
+  if (result.cancelled) {
+    ui_state_.notice = ui_->animation_cancelled;
+  } else if (result.saved) {
+    ui_state_.notice = ui_->saved_prefix + result.path;
+  } else {
+    ui_state_.notice = ui_->animation_failed;
+  }
+  ui_state_.notice_time = GetTime();
 }
 
 RenderSettings Application::MakeRenderSettings(int width, int height,
@@ -887,6 +971,19 @@ std::string Application::BuildStatus(bool busy) const {
       status += " + ";
     }
     status += "PNG " + export_state_.label;
+  }
+
+  int animation_frame = 0;
+  int animation_total = 0;
+  if (animation_state_.active &&
+      animation_worker_.GetProgress(animation_frame, animation_total)) {
+    if (!status.empty()) {
+      status += " + ";
+    }
+    char buffer[64];
+    std::snprintf(buffer, sizeof(buffer), ui_->animation_status_format,
+                  animation_frame, animation_total);
+    status += buffer;
   }
   return status;
 }

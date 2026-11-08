@@ -27,6 +27,20 @@ class ColorMap {
   /// Points with iter >= max_iter are treated as interior and painted black.
   Color GetColor(double iter, int max_iter) const;
 
+  /// Fills colors with count evenly spaced colors of one color cycle.
+  /// The last color is close to the first, so the sequence can loop.
+  void GetCyclePalette(Color* colors, int count) const;
+
+  /// Length of one color cycle in smoothed iterations for the given limit.
+  double GetCycleLength(int max_iter) const;
+
+  /// Index for an indexed image with one interior entry followed by count
+  /// cycle colors.
+  /// @param cycle cycle length; when not positive, it comes from max_iter
+  /// @return 0 for interior pixels, otherwise an index in [1, count]
+  int GetPaletteIndex(double iter, int max_iter, int count,
+                      double cycle = 0.0) const;
+
  private:
   static Color Lerp(Color from, Color to, float t);
 

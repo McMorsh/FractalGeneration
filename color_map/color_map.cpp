@@ -114,8 +114,7 @@ Color ColorMap::GetColor(double iter, int max_iter) const {
 
   // The cycle grows with max_iter, otherwise color bands become too frequent
   // at deep zoom.
-  const double cycle = std::max(
-      kMinColorCycle, static_cast<double>(max_iter) / kColorCycleDivisor);
+  const double cycle = GetCycleLength(max_iter);
 
   const double t = std::max(0.0, iter) / cycle;
   const double wrapped = t - std::floor(t);
@@ -126,4 +125,55 @@ Color ColorMap::GetColor(double iter, int max_iter) const {
   const float frac = static_cast<float>(position - static_cast<double>(index));
 
   return Lerp(colors_[index], colors_[next], frac);
+}
+
+void ColorMap::GetCyclePalette(Color* colors, int count) const {
+  if (colors == nullptr || count <= 0) {
+    return;
+  }
+  if (colors_.empty()) {
+    for (int i = 0; i < count; ++i) {
+      colors[i] = BLACK;
+    }
+    return;
+  }
+
+  for (int i = 0; i < count; ++i) {
+    const double position = static_cast<double>(i) /
+                            static_cast<double>(count) *
+                            static_cast<double>(colors_.size());
+    const auto index = static_cast<std::size_t>(position);
+    const std::size_t next = (index + 1) % colors_.size();
+    const float frac =
+        static_cast<float>(position - static_cast<double>(index));
+    colors[i] = Lerp(colors_[index], colors_[next], frac);
+  }
+}
+
+int ColorMap::GetPaletteIndex(double iter, int max_iter, int count,
+                              double cycle) const {
+  if (colors_.empty() || max_iter <= 0 || count <= 0) {
+    return 0;
+  }
+  if (iter >= static_cast<double>(max_iter)) {
+    return 0;
+  }
+
+  const double cycle_length = cycle > 0.0 ? cycle : GetCycleLength(max_iter);
+  if (cycle_length <= 0.0) {
+    return 0;
+  }
+
+  const double t = std::max(0.0, iter) / cycle_length;
+  const double wrapped = t - std::floor(t);
+  const int index = 1 + static_cast<int>(wrapped * static_cast<double>(count));
+  return std::min(index, count);
+}
+
+double ColorMap::GetCycleLength(int max_iter) const {
+  if (colors_.empty() || max_iter <= 0) {
+    return 0.0;
+  }
+  return std::max(kMinColorCycle,
+                  static_cast<double>(max_iter) / kColorCycleDivisor);
 }

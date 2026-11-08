@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 
+#include "animation_worker.hpp"
 #include "backend.hpp"
 #include "bookmarks.hpp"
 #include "color_map.hpp"
@@ -60,6 +61,11 @@ class Application {
     std::string label;
   };
 
+  struct AnimationState {
+    std::uint64_t request_id = 0;
+    bool active = false;
+  };
+
   struct UiState {
     bool show_help = true;
     bool hud_visible = true;
@@ -101,11 +107,13 @@ class Application {
   void HandleModeKeys();
   void HandleDisplayKeys();
   void HandleExportKey();
+  void HandleAnimationKey();
 
   void UpdateRenderRequests();
   void PollWorkers();
   void HandleRenderResult();
   void HandleExportResult();
+  void HandleAnimationResult();
 
   void SubmitRender(int width, int height, bool full);
   void RequestPreview();
@@ -132,11 +140,13 @@ class Application {
   View view_;
   RenderWorker render_worker_;
   ImageExportWorker export_worker_;
+  AnimationWorker animation_worker_;
   const UiText* ui_ = nullptr;
   int iteration_bonus_ = 0;
   double iteration_repeat_time_ = 0.0;
   RenderState render_state_;
   ExportState export_state_;
+  AnimationState animation_state_;
   UiState ui_state_;
   BookmarkInputState bookmark_input_;
 };
