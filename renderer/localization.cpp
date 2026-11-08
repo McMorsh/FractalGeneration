@@ -23,6 +23,13 @@ constexpr UiText kRussianText = {
     "Сохранено ",
     "Не удалось сохранить ",
     "рендер",
+    "Закладка сохранена: ",
+    "Закладка восстановлена: ",
+    "Закладка %d пуста",
+    "Закладка ",
+    "Название закладки",
+    "Enter сохранить   |   Esc отмена",
+    "Не удалось сохранить закладки",
 };
 
 constexpr UiText kEnglishText = {
@@ -42,12 +49,21 @@ constexpr UiText kEnglishText = {
     "Saved ",
     "Could not save ",
     "rendering",
+    "Bookmark saved: ",
+    "Bookmark restored: ",
+    "Bookmark %d is empty",
+    "Bookmark ",
+    "Bookmark name",
+    "Enter to save   |   Esc to cancel",
+    "Could not save bookmarks",
 };
 
 constexpr HelpLineText kRussianHelp[] = {
     {"Колесо, + / -", "управление масштабом"},
     {"Стрелки, ЛКМ", "перемещение"},
     {"[ / ]", "итерации"},
+    {"1...9", "закладки"},
+    {"Shift + 1...9", "сохранить закладку"},
     {"P", "палитра"},
     {"C / V", "копировать / вставить"},
     {"F2", "сохранить PNG"},
@@ -65,6 +81,8 @@ constexpr HelpLineText kEnglishHelp[] = {
     {"Wheel, + / -", "zoom"},
     {"Arrows, LMB", "move"},
     {"[ / ]", "iterations"},
+    {"1...9", "bookmarks"},
+    {"Shift + 1...9", "save bookmark"},
     {"P", "palette"},
     {"C / V", "copy / paste"},
     {"F2", "save PNG"},

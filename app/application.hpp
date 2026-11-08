@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "backend.hpp"
+#include "bookmarks.hpp"
 #include "color_map.hpp"
 #include "fractal_render.hpp"
 #include "fractal_type.hpp"
@@ -68,6 +69,12 @@ class Application {
     double notice_time = 0.0;
   };
 
+  struct BookmarkInputState {
+    bool active = false;
+    int slot = 0;
+    std::string text;
+  };
+
   void HandleResize();
   void HandleMouseInput();
   void HandleJuliaControls(float mouse_x, float mouse_y);
@@ -83,6 +90,13 @@ class Application {
   void HandleClipboardKeys();
   void HandleCopyKey();
   void HandlePasteKey();
+  void HandleBookmarkKeys(bool shift_down);
+  void HandleBookmarkInput();
+  void OpenBookmarkPrompt(int slot);
+  void CommitBookmarkPrompt();
+  void CancelBookmarkPrompt();
+  void RestoreBookmark(int slot);
+  std::string GetBookmarkName(const Bookmark& bookmark, int slot) const;
   void HandleViewKeys();
   void HandleModeKeys();
   void HandleDisplayKeys();
@@ -109,6 +123,7 @@ class Application {
 
   std::filesystem::path settings_file_;
   Settings settings_;
+  Bookmarks bookmarks_;
   Language language_;
   Backend backend_ = Backend::kAuto;
   FractalParams fractal_;
@@ -123,6 +138,7 @@ class Application {
   RenderState render_state_;
   ExportState export_state_;
   UiState ui_state_;
+  BookmarkInputState bookmark_input_;
 };
 
 #endif  // FRACTALGENERATION_APP_APPLICATION_HPP_

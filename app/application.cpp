@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstddef>
 #include <cstdio>
 #include <ctime>
 #include <filesystem>
@@ -13,6 +14,7 @@
 #include <raylib.h>
 
 #include "backend.hpp"
+#include "bookmarks.hpp"
 #include "color_map.hpp"
 #include "export_presets.hpp"
 #include "fractal_render.hpp"
@@ -46,6 +48,7 @@ constexpr int kWideWindowWidth = 900;
 constexpr int kHelpMinWindowWidth = 800;
 constexpr double kNoticeDuration = 3.0;
 constexpr double kMillisecondsPerSecond = 1000.0;
+constexpr std::size_t kBookmarkNameMaxLength = 32;
 
 std::string MakeScreenshotPath(const char* prefix, const char* suffix) {
   const std::time_t now = std::time(nullptr);
@@ -69,6 +72,44 @@ std::string MakeScreenshotPath(const char* prefix, const char* suffix) {
   path += suffix;
   path += ".png";
   return path;
+}
+
+std::size_t CountCodepoints(const std::string& text) {
+  std::size_t count = 0;
+  for (const unsigned char byte : text) {
+    if ((byte & 0xC0) != 0x80) {
+      ++count;
+    }
+  }
+  return count;
+}
+
+void AppendCodepoint(std::string& text, int codepoint) {
+  int size = 0;
+  const char* utf8 = CodepointToUTF8(codepoint, &size);
+  if (utf8 != nullptr && size > 0) {
+    text.append(utf8, static_cast<std::size_t>(size));
+  }
+}
+
+void RemoveLastCodepoint(std::string& text) {
+  while (!text.empty() &&
+         (static_cast<unsigned char>(text.back()) & 0xC0) == 0x80) {
+    text.pop_back();
+  }
+  if (!text.empty()) {
+    text.pop_back();
+  }
+}
+
+std::string TrimBookmarkName(const std::string& text) {
+  const std::size_t first = text.find_first_not_of(" \t");
+  if (first == std::string::npos) {
+    return {};
+  }
+
+  const std::size_t last = text.find_last_not_of(" \t");
+  return text.substr(first, last - first + 1);
 }
 
 std::string MakeInfo(const View& view, int max_iter, const char* palette,
@@ -146,6 +187,7 @@ int GetDisplayThreadCount() {
 Application::Application(Backend backend)
     : settings_file_(GetSettingsPath()),
       settings_(LoadSettings(settings_file_, GetLegacySettingsPath())),
+      bookmarks_(LoadBookmarks(GetBookmarksPath())),
       language_(settings_.language),
       backend_(backend),
       fractal_(settings_.fractal),
@@ -203,6 +245,11 @@ void Application::HandleResize() {
 }
 
 void Application::HandleMouseInput() {
+  // The bookmark prompt owns the input while it is open.
+  if (bookmark_input_.active) {
+    return;
+  }
+
   const Vector2 mouse = GetMousePosition();
   HandleJuliaControls(mouse.x, mouse.y);
   HandlePan();
@@ -266,6 +313,11 @@ void Application::HandleZoom(float mouse_x, float mouse_y) {
 }
 
 void Application::HandleKeyboardInput() {
+  if (bookmark_input_.active) {
+    HandleBookmarkInput();
+    return;
+  }
+
   const bool shift_down =
       IsKeyDown(KEY_LEFT_SHIFT) || IsKeyDown(KEY_RIGHT_SHIFT);
 
@@ -274,6 +326,7 @@ void Application::HandleKeyboardInput() {
   HandleIterationKeys();
   HandlePaletteKey();
   HandleClipboardKeys();
+  HandleBookmarkKeys(shift_down);
   HandleViewKeys();
   HandleModeKeys();
   HandleDisplayKeys();
@@ -450,6 +503,129 @@ void Application::HandlePasteKey() {
   PersistSettings();
   RequestFull();
   ui_state_.notice = ui_->pasted_view;
+  ui_state_.notice_time = GetTime();
+}
+
+void Application::HandleBookmarkKeys(bool shift_down) {
+  for (int slot = 0; slot < kBookmarkSlotCount; ++slot) {
+    if (!IsKeyPressed(KEY_ONE + slot)) {
+      continue;
+    }
+
+    if (shift_down) {
+      OpenBookmarkPrompt(slot);
+    } else {
+      RestoreBookmark(slot);
+    }
+    return;
+  }
+}
+
+void Application::HandleBookmarkInput() {
+  int codepoint = GetCharPressed();
+  while (codepoint > 0) {
+    if (codepoint >= 32 && codepoint != 127 &&
+        CountCodepoints(bookmark_input_.text) < kBookmarkNameMaxLength) {
+      AppendCodepoint(bookmark_input_.text, codepoint);
+    }
+    codepoint = GetCharPressed();
+  }
+
+  if (IsKeyPressed(KEY_BACKSPACE) || IsKeyPressedRepeat(KEY_BACKSPACE)) {
+    RemoveLastCodepoint(bookmark_input_.text);
+  }
+
+  if (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_KP_ENTER)) {
+    CommitBookmarkPrompt();
+  } else if (IsKeyPressed(KEY_ESCAPE)) {
+    CancelBookmarkPrompt();
+  }
+}
+
+void Application::OpenBookmarkPrompt(int slot) {
+  bookmark_input_.active = true;
+  bookmark_input_.slot = slot;
+  const Bookmark& bookmark = bookmarks_.slots[slot];
+  bookmark_input_.text =
+      bookmark.used && !bookmark.name.empty()
+          ? bookmark.name
+          : ui_->bookmark_default_prefix + std::to_string(slot + 1);
+  // Esc cancels the prompt instead of closing the window.
+  SetExitKey(KEY_NULL);
+  // Drop the character produced by the Shift + digit press itself.
+  while (GetCharPressed() > 0) {
+  }
+}
+
+std::string Application::GetBookmarkName(const Bookmark& bookmark,
+                                         int slot) const {
+  return bookmark.name.empty()
+             ? ui_->bookmark_default_prefix + std::to_string(slot + 1)
+             : bookmark.name;
+}
+
+void Application::CommitBookmarkPrompt() {
+  const int slot = bookmark_input_.slot;
+  Bookmark bookmark;
+  bookmark.used = true;
+  bookmark.name = TrimBookmarkName(bookmark_input_.text);
+  if (bookmark.name.empty()) {
+    bookmark.name = ui_->bookmark_default_prefix + std::to_string(slot + 1);
+  }
+  bookmark.view.center_x = view_.GetCenterX();
+  bookmark.view.center_y = view_.GetCenterY();
+  bookmark.view.span = view_.GetSpan();
+  bookmark.view.iterations =
+      ComputeIterationsForView(view_.GetSpan(), iteration_bonus_);
+  bookmark.view.palette = colormap_.GetPaletteName();
+  bookmark.fractal = fractal_;
+
+  bookmarks_.slots[slot] = bookmark;
+  const bool saved = SaveBookmarks(bookmarks_, GetBookmarksPath());
+  CancelBookmarkPrompt();
+  ui_state_.notice = saved ? ui_->bookmark_saved_prefix + bookmark.name
+                           : ui_->bookmark_save_failed;
+  ui_state_.notice_time = GetTime();
+}
+
+void Application::CancelBookmarkPrompt() {
+  bookmark_input_.active = false;
+  bookmark_input_.text.clear();
+  SetExitKey(KEY_ESCAPE);
+}
+
+void Application::RestoreBookmark(int slot) {
+  const Bookmark& bookmark = bookmarks_.slots[slot];
+  if (!bookmark.used) {
+    char buffer[128];
+    std::snprintf(buffer, sizeof(buffer), ui_->bookmark_empty_format, slot + 1);
+    ui_state_.notice = buffer;
+    ui_state_.notice_time = GetTime();
+    return;
+  }
+
+  const View restored(bookmark.view.center_x, bookmark.view.center_y,
+                      bookmark.view.span, view_.GetWidth(), view_.GetHeight());
+  int bonus =
+      bookmark.view.iterations - ComputeIterationsForSpan(restored.GetSpan());
+  if (ComputeIterationsForView(restored.GetSpan(), bonus) !=
+      bookmark.view.iterations) {
+    bonus = 0;
+  }
+
+  ui_state_.active_julia_slider = -1;
+  ui_state_.suppress_pan = false;
+  view_ = restored;
+  iteration_bonus_ = bonus;
+  fractal_ = bookmark.fractal;
+  colormap_.SetPalette(bookmark.view.palette);
+  settings_.palette = colormap_.GetPaletteName();
+  settings_.fractal = fractal_;
+  renderer_.SetFractalType(fractal_.type);
+  PersistSettings();
+  RequestFull();
+  ui_state_.notice =
+      ui_->bookmark_restored_prefix + GetBookmarkName(bookmark, slot);
   ui_state_.notice_time = GetTime();
 }
 
@@ -668,9 +844,16 @@ void Application::DrawFrame() {
                               view_.GetWidth() >= kHelpMinWindowWidth);
   const JuliaControls julia_controls{fractal_.type == FractalType::kJulia,
                                      ui_state_.active_julia_slider};
+  BookmarkPrompt bookmark_prompt;
+  if (bookmark_input_.active) {
+    bookmark_prompt.visible = true;
+    bookmark_prompt.title = ui_->bookmark_prompt_title;
+    bookmark_prompt.text = bookmark_input_.text;
+    bookmark_prompt.hint = ui_->bookmark_prompt_hint;
+  }
   renderer_.Display(info, details, visible_notice, status,
                     ui_state_.hud_visible, show_help_now, julia_controls,
-                    fractal_);
+                    fractal_, bookmark_prompt);
 }
 
 std::string Application::BuildInfo() const {

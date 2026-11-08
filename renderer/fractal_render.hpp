@@ -17,6 +17,14 @@ struct JuliaControls {
   int active_slider = -1;
 };
 
+/// Text input overlay for naming a bookmark.
+struct BookmarkPrompt {
+  bool visible = false;
+  std::string title;
+  std::string text;
+  std::string hint;
+};
+
 /// raylib window, fractal texture, and screen interface.
 class FractalRender {
  public:
@@ -59,11 +67,14 @@ class FractalRender {
   /// @param show_hud draws the top bar, help panel, Julia panel, and version
   /// @param show_help enables the help panel
   /// @param julia_controls Julia parameter c sliders
+  /// @param fractal fractal parameters for the Julia panel and title
+  /// @param bookmark_prompt name input for a bookmark
   void Display(const std::string& info, const std::string& details,
                const std::string& notice, const std::string& status,
                bool show_hud, bool show_help,
                const JuliaControls& julia_controls,
-               const FractalParams& fractal) const;
+               const FractalParams& fractal,
+               const BookmarkPrompt& bookmark_prompt) const;
 
   /// Index of the c slider under the point.
   /// @return 0 for Re, 1 for Im, -1 if there is no hit.

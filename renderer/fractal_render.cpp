@@ -27,7 +27,7 @@ constexpr int kPanelWidth = 380;
 constexpr int kPanelPadding = 16;
 constexpr int kHelpHeaderHeight = 28;
 constexpr int kHelpPanelMargin = 24;
-constexpr int kLineHeight = 20;
+constexpr int kLineHeight = 19;
 constexpr int kHelpKeyColumnWidth = 170;
 constexpr int kFontAtlasSize = 32;
 constexpr int kTitleFontSize = 24;
@@ -49,6 +49,17 @@ constexpr int kJuliaLabelOffsetX = 38;
 constexpr int kJuliaLabelOffsetY = 6;
 constexpr int kJuliaValueOffsetX = 12;
 constexpr int kJuliaValueOffsetY = 6;
+constexpr int kPromptWidth = 520;
+constexpr int kPromptHeight = 140;
+constexpr int kPromptPadding = 20;
+constexpr int kPromptTitleOffsetY = 16;
+constexpr int kPromptInputOffsetY = 48;
+constexpr int kPromptInputHeight = 30;
+constexpr int kPromptInputPaddingX = 8;
+constexpr int kPromptInputPaddingY = 7;
+constexpr int kPromptHintOffsetY = 98;
+constexpr int kPromptCaretWidth = 2;
+constexpr int kPromptCaretHeight = 16;
 constexpr float kJuliaSliderHitPaddingX = 8.0f;
 constexpr float kJuliaSliderHitPaddingY = 12.0f;
 constexpr int kAsciiFirstCode = 32;
@@ -63,6 +74,10 @@ constexpr float kFpsAlpha = 0.6f;
 constexpr float kVersionAlpha = 0.35f;
 constexpr float kHelpActionAlpha = 0.75f;
 constexpr float kSliderValueAlpha = 0.8f;
+constexpr float kPromptBackdropAlpha = 0.35f;
+constexpr float kPromptBoxAlpha = 0.9f;
+constexpr float kPromptBorderAlpha = 0.35f;
+constexpr float kPromptInputAlpha = 0.12f;
 constexpr float kJuliaActiveHandleRadius = 8.0f;
 constexpr float kJuliaInactiveHandleRadius = 6.0f;
 constexpr double kJuliaMin = -2.0;
@@ -306,6 +321,40 @@ void DrawHelpPanel(const Font& font, int height, Language language) {
   }
 }
 
+void DrawBookmarkPrompt(const Font& font, int width, int height,
+                        const BookmarkPrompt& prompt) {
+  if (!prompt.visible) {
+    return;
+  }
+
+  DrawRectangle(0, 0, width, height, Fade(BLACK, kPromptBackdropAlpha));
+
+  const int box_x = (width - kPromptWidth) / 2;
+  const int box_y = (height - kPromptHeight) / 2;
+  DrawRectangle(box_x, box_y, kPromptWidth, kPromptHeight,
+                Fade(BLACK, kPromptBoxAlpha));
+  DrawRectangleLines(box_x, box_y, kPromptWidth, kPromptHeight,
+                     Fade(RAYWHITE, kPromptBorderAlpha));
+
+  const int text_x = box_x + kPromptPadding;
+  DrawUiText(font, prompt.title.c_str(), text_x, box_y + kPromptTitleOffsetY,
+             kHudFontSize, Fade(RAYWHITE, kNoticeAlpha));
+
+  const int input_y = box_y + kPromptInputOffsetY;
+  DrawRectangle(text_x, input_y, kPromptWidth - 2 * kPromptPadding,
+                kPromptInputHeight, Fade(RAYWHITE, kPromptInputAlpha));
+  DrawUiText(font, prompt.text.c_str(), text_x + kPromptInputPaddingX,
+             input_y + kPromptInputPaddingY, kHudFontSize, RAYWHITE);
+
+  const int caret_x = text_x + kPromptInputPaddingX +
+                      MeasureUiText(font, prompt.text.c_str(), kHudFontSize);
+  DrawRectangle(caret_x, input_y + kPromptInputPaddingY, kPromptCaretWidth,
+                kPromptCaretHeight, RAYWHITE);
+
+  DrawUiText(font, prompt.hint.c_str(), text_x, box_y + kPromptHintOffsetY,
+             kHudFontSize, Fade(RAYWHITE, kHelpActionAlpha));
+}
+
 }  // namespace
 
 FractalRender::FractalRender(int width, int height, const char* title) {
@@ -383,7 +432,8 @@ void FractalRender::Display(const std::string& info, const std::string& details,
                             const std::string& notice,
                             const std::string& status, bool show_hud,
                             bool show_help, const JuliaControls& julia_controls,
-                            const FractalParams& fractal) const {
+                            const FractalParams& fractal,
+                            const BookmarkPrompt& bookmark_prompt) const {
   BeginDrawing();
   ClearBackground(BLACK);
 
@@ -394,23 +444,23 @@ void FractalRender::Display(const std::string& info, const std::string& details,
                           static_cast<float>(height_)};
   DrawTexturePro(texture_, source, dest, Vector2{0.0f, 0.0f}, 0.0f, WHITE);
 
-  if (!show_hud) {
-    EndDrawing();
-    return;
+  if (show_hud) {
+    DrawTopBar(font_, width_, info, details, notice, status, language_,
+               fractal_type_);
+
+    if (show_help) {
+      DrawHelpPanel(font_, height_, language_);
+    }
+
+    if (julia_controls.visible) {
+      DrawJuliaPanel(font_, width_, height_, julia_controls, fractal);
+    }
+
+    DrawVersion(font_, width_, height_);
   }
 
-  DrawTopBar(font_, width_, info, details, notice, status, language_,
-             fractal_type_);
-
-  if (show_help) {
-    DrawHelpPanel(font_, height_, language_);
-  }
-
-  if (julia_controls.visible) {
-    DrawJuliaPanel(font_, width_, height_, julia_controls, fractal);
-  }
-
-  DrawVersion(font_, width_, height_);
+  // The prompt stays visible with the HUD hidden: it is the only input.
+  DrawBookmarkPrompt(font_, width_, height_, bookmark_prompt);
 
   EndDrawing();
 }

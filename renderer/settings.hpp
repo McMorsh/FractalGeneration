@@ -27,6 +27,9 @@ std::filesystem::path GetSettingsPath();
 /// settings on the first run.
 std::filesystem::path GetLegacySettingsPath();
 
+/// Returns the path to the bookmarks file in the settings directory.
+std::filesystem::path GetBookmarksPath();
+
 /// Parses settings file contents. Unknown keys and values are skipped.
 Settings ParseSettings(const std::string& text);
 

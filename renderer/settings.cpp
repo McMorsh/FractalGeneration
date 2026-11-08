@@ -26,6 +26,7 @@ constexpr const char* kEnglishValue = "en";
 constexpr const char* kConfigDirectory = "FractalGeneration";
 constexpr const char* kLegacyConfigDirectory = "MandelbrotFractalGeneration";
 constexpr const char* kSettingsFileName = "settings.txt";
+constexpr const char* kBookmarksFileName = "bookmarks.txt";
 
 std::filesystem::path GetCurrentDirectory() {
   std::error_code error;
@@ -117,6 +118,10 @@ std::filesystem::path GetSettingsPath() {
 
 std::filesystem::path GetLegacySettingsPath() {
   return GetConfigRoot() / kLegacyConfigDirectory / kSettingsFileName;
+}
+
+std::filesystem::path GetBookmarksPath() {
+  return GetConfigRoot() / kConfigDirectory / kBookmarksFileName;
 }
 
 Settings ParseSettings(const std::string& text) {

@@ -86,6 +86,7 @@ add_executable(FractalGeneration
         fractal_core/view.cpp
         fractal_core/view_snapshot.cpp
         renderer/fractal_render.cpp
+        renderer/bookmarks.cpp
         renderer/image_export_worker.cpp
         renderer/image_render.cpp
         renderer/localization.cpp
@@ -151,6 +152,7 @@ if(BUILD_TESTING)
 
     add_executable(fractal_tests
             tests/backend_test.cpp
+            tests/bookmarks_test.cpp
             tests/command_line_test.cpp
             tests/fractal_test.cpp
             tests/fractal_type_test.cpp
@@ -174,7 +176,8 @@ if(BUILD_TESTING)
             app/command_line.cpp
             renderer/image_render.cpp
             renderer/localization.cpp
-            renderer/settings.cpp)
+            renderer/settings.cpp
+            renderer/bookmarks.cpp)
 
     target_include_directories(fractal_tests PRIVATE
             ${CMAKE_CURRENT_SOURCE_DIR}/app

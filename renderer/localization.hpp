@@ -26,6 +26,13 @@ struct UiText {
   const char* saved_prefix;
   const char* save_failed_prefix;
   const char* status_rendering;
+  const char* bookmark_saved_prefix;
+  const char* bookmark_restored_prefix;
+  const char* bookmark_empty_format;
+  const char* bookmark_default_prefix;
+  const char* bookmark_prompt_title;
+  const char* bookmark_prompt_hint;
+  const char* bookmark_save_failed;
 };
 
 /// Help panel line: keys on the left, action on the right.
@@ -35,7 +42,7 @@ struct HelpLineText {
 };
 
 /// Number of help panel lines.
-inline constexpr int kHelpLineCount = 14;
+inline constexpr int kHelpLineCount = 16;
 
 /// Fractal name for the window title and HUD.
 const char* GetFractalTitle(FractalType type, Language language);
