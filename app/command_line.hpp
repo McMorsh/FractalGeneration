@@ -8,6 +8,7 @@
 /// Command-line options.
 struct Options {
   bool show_help = false;
+  bool show_version = false;
   bool headless = false;
   std::string output;
   std::string palette = "Ember";
@@ -20,5 +21,8 @@ bool ParseArguments(int argc, char** argv, Options& options);
 
 /// Prints command-line help.
 void PrintUsage(const char* program);
+
+/// Prints the application name and version.
+void PrintVersion();
 
 #endif  // FRACTALGENERATION_APP_COMMAND_LINE_HPP_

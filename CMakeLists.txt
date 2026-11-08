@@ -187,6 +187,9 @@ if(BUILD_TESTING)
             raylib
             OpenMP::OpenMP_CXX)
 
+    target_compile_definitions(fractal_tests PRIVATE
+            FRACTALGENERATION_VERSION="${PROJECT_VERSION}")
+
     if(OpenCL_FOUND)
         target_link_libraries(fractal_tests PRIVATE OpenCL::OpenCL)
         target_compile_definitions(fractal_tests PRIVATE FRACTALGENERATION_HAS_OPENCL=1)

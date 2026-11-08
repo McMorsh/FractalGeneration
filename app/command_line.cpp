@@ -9,6 +9,7 @@
 
 #include "backend.hpp"
 #include "fractal_type.hpp"
+#include "version.hpp"
 #include "view_defaults.hpp"
 
 namespace {
@@ -59,14 +60,24 @@ void PrintUsage(const char* program) {
       "      --julia-re <value>    Julia c real part (default %g)\n"
       "      --julia-im <value>    Julia c imaginary part (default %g)\n"
       "      --backend <name>      auto, cpu or opencl (default auto)\n"
+      "  -v, --version             show version\n"
       "  -h, --help                show this help\n",
       program, kInitialCenterX, kInitialCenterY, kInitialSpan,
       kDefaultJuliaReal, kDefaultJuliaImag);
 }
 
+void PrintVersion() {
+  std::printf("FractalGeneration %s\n", FRACTALGENERATION_VERSION);
+}
+
 bool ParseArguments(int argc, char** argv, Options& options) {
   for (int i = 1; i < argc; ++i) {
     const std::string arg = argv[i];
+
+    if (arg == "--version" || arg == "-v") {
+      options.show_version = true;
+      return true;
+    }
 
     if (arg == "--help" || arg == "-h") {
       options.show_help = true;

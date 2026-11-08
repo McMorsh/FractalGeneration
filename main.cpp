@@ -12,6 +12,11 @@ int main(int argc, char** argv) {
     return 1;
   }
 
+  if (options.show_version) {
+    PrintVersion();
+    return 0;
+  }
+
   if (options.show_help) {
     PrintUsage(argv[0]);
     return 0;

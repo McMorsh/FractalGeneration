@@ -7,9 +7,7 @@
 
 #include <raylib.h>
 
-#ifndef FRACTALGENERATION_VERSION
-#define FRACTALGENERATION_VERSION "dev"
-#endif
+#include "version.hpp"
 
 namespace {
 

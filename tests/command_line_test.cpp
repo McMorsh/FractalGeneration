@@ -34,6 +34,22 @@ struct Args {
   }
 };
 
+TEST(CommandLineTest, ParsesVersion) {
+  Args args{"FractalGeneration", "--version"};
+  Options options;
+
+  ASSERT_TRUE(ParseArguments(args.GetArgc(), args.GetArgv(), options));
+  EXPECT_TRUE(options.show_version);
+}
+
+TEST(CommandLineTest, ParsesShortVersion) {
+  Args args{"FractalGeneration", "-v"};
+  Options options;
+
+  ASSERT_TRUE(ParseArguments(args.GetArgc(), args.GetArgv(), options));
+  EXPECT_TRUE(options.show_version);
+}
+
 TEST(CommandLineTest, ParsesHelp) {
   Args args{"FractalGeneration", "--help"};
   Options options;
