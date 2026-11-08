@@ -73,6 +73,7 @@ class Application {
   void HandleJuliaControls(float mouse_x, float mouse_y);
   void HandlePan();
   void HandleZoom(float mouse_x, float mouse_y);
+  void ApplyZoom(double factor, double screen_x, double screen_y);
 
   void HandleKeyboardInput();
   void HandleExportPresetKeys(bool shift_down);

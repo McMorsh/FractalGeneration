@@ -133,7 +133,7 @@ TEST(ViewSnapshotTest, RejectsMissingFields) {
 }
 
 TEST(ViewSnapshotTest, RejectsInvalidSpan) {
-  for (const char* span : {"0", "-1", "nan", "inf", "abc", "1e-12", "100"}) {
+  for (const char* span : {"0", "-1", "nan", "inf", "abc", "1e-13", "100"}) {
     const std::string text = std::string("center (0, +0i)\nspan ") + span +
                              "\niterations 100\npalette Ember";
     ViewSnapshot snapshot;

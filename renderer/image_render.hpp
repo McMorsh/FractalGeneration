@@ -5,13 +5,14 @@
 #include <vector>
 
 #include "color_map.hpp"
+#include "iterations.hpp"
 #include "render_settings.hpp"
 
 /// Maximum image side length in pixels.
 inline constexpr int kMaxImageDimension = 8192;
 
 /// Maximum supported iteration count.
-inline constexpr int kMaxIterationCount = 100000;
+inline constexpr int kMaxIterationCount = kMaxIterations;
 
 /// Checks dimensions, iteration count, span, center, and fractal parameters.
 bool IsValidRenderSettings(const RenderSettings& settings);

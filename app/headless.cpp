@@ -1,5 +1,6 @@
 #include "headless.hpp"
 
+#include <algorithm>
 #include <cstdio>
 #include <string>
 
@@ -17,6 +18,9 @@ int RunHeadless(const Options& options) {
   }
 
   RenderSettings settings = options.settings;
+  // The viewer clamps the span, so headless mode must do the same: below the
+  // limit the image is a grid of repeated coordinates anyway.
+  settings.span = std::max(settings.span, kMinSpan);
   if (settings.max_iterations == 0) {
     settings.max_iterations = ComputeIterationsForSpan(settings.span);
   }

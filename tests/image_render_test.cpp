@@ -70,8 +70,8 @@ TEST(ImageRenderTest, RejectsInvalidArguments) {
   EXPECT_FALSE(
       SaveIterationImage(kPath, data, 0, kHeight, kMaxIterations, colormap));
   EXPECT_FALSE(SaveIterationImage(kPath, data, kWidth, kHeight, 0, colormap));
-  EXPECT_FALSE(
-      SaveIterationImage(kPath, data, kWidth, kHeight, 100001, colormap));
+  EXPECT_FALSE(SaveIterationImage(kPath, data, kWidth, kHeight,
+                                  kMaxIterationCount + 1, colormap));
 }
 
 }  // namespace

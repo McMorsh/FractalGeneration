@@ -261,9 +261,7 @@ void Application::HandleZoom(float mouse_x, float mouse_y) {
   const float wheel = GetMouseWheelMove();
   if (wheel != 0.0f) {
     const double factor = std::pow(kZoomFactor, -static_cast<double>(wheel));
-    if (view_.ZoomAt(factor, mouse_x, mouse_y)) {
-      RequestPreview();
-    }
+    ApplyZoom(factor, mouse_x, mouse_y);
   }
 }
 
@@ -326,19 +324,39 @@ void Application::HandleNavigationKeys(bool shift_down) {
     const double factor = keyboard_zoom_in ? 1.0 / kZoomFactor : kZoomFactor;
     const double center_x = view_.GetWidth() * 0.5;
     const double center_y = view_.GetHeight() * 0.5;
-    if (view_.ZoomAt(factor, center_x, center_y)) {
-      RequestPreview();
-    }
+    ApplyZoom(factor, center_x, center_y);
   }
+}
+
+void Application::ApplyZoom(double factor, double screen_x, double screen_y) {
+  const double old_span = view_.GetSpan();
+  if (!view_.ZoomAt(factor, screen_x, screen_y)) {
+    return;
+  }
+
+  // The manual offset is an absolute count, so it follows the automatic count
+  // when the scale changes. Otherwise an offset taken at deep zoom would make
+  // shallow frames needlessly expensive.
+  if (iteration_bonus_ != 0) {
+    const double old_automatic = ComputeIterationsForSpan(old_span);
+    const double new_automatic = ComputeIterationsForSpan(view_.GetSpan());
+    iteration_bonus_ = static_cast<int>(
+        std::lround(iteration_bonus_ * new_automatic / old_automatic));
+  }
+
+  RequestPreview();
 }
 
 void Application::HandleIterationKeys() {
   int iteration_delta = 0;
+  const int current =
+      ComputeIterationsForView(view_.GetSpan(), iteration_bonus_);
+  const int step = GetIterationStep(current);
   if (IsKeyDown(KEY_RIGHT_BRACKET)) {
-    iteration_delta += kIterationStep;
+    iteration_delta += step;
   }
   if (IsKeyDown(KEY_LEFT_BRACKET)) {
-    iteration_delta -= kIterationStep;
+    iteration_delta -= step;
   }
 
   // The first press takes effect immediately; then the step repeats while
@@ -416,9 +434,8 @@ void Application::HandlePasteKey() {
 
   const View pasted_view(snapshot.center_x, snapshot.center_y, snapshot.span,
                          view_.GetWidth(), view_.GetHeight());
-  const int bonus = std::clamp(
-      snapshot.iterations - ComputeIterationsForSpan(pasted_view.GetSpan()),
-      kMinIterationBonus, kMaxIterationBonus);
+  const int bonus =
+      snapshot.iterations - ComputeIterationsForSpan(pasted_view.GetSpan());
   if (ComputeIterationsForView(pasted_view.GetSpan(), bonus) !=
       snapshot.iterations) {
     ui_state_.notice = ui_->cannot_restore_iterations;

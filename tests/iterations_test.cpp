@@ -15,7 +15,18 @@ TEST(IterationsTest, ViewAppliesBonus) {
 
 TEST(IterationsTest, ViewClampsToLimits) {
   EXPECT_EQ(ComputeIterationsForView(kInitialSpan, -1000), kMinIterations);
-  EXPECT_EQ(ComputeIterationsForView(kInitialSpan, 5000), kMaxIterations);
+  EXPECT_EQ(ComputeIterationsForView(kInitialSpan, kMaxIterations),
+            kMaxIterations);
+}
+
+TEST(IterationsTest, DeepViewNeedsManyIterations) {
+  EXPECT_GT(ComputeIterationsForSpan(kMinSpan), 100000);
+  EXPECT_LE(ComputeIterationsForSpan(kMinSpan), kMaxIterations);
+}
+
+TEST(IterationsTest, IterationStepGrowsWithCount) {
+  EXPECT_EQ(GetIterationStep(kMinIterations), kIterationStep);
+  EXPECT_GT(GetIterationStep(100000), 1000);
 }
 
 TEST(IterationsTest, StepDownStopsAtFloor) {
@@ -36,19 +47,23 @@ TEST(IterationsTest, StepUpWorksFromFloor) {
 }
 
 TEST(IterationsTest, StepUpStopsAtCeiling) {
+  const int automatic = ComputeIterationsForSpan(kMinSpan);
+  const int ceiling_bonus = kMaxIterations - automatic;
   int next_bonus = 0;
 
-  EXPECT_FALSE(
-      TryNextIterationBonus(kMinSpan, 2000, kIterationStep, next_bonus));
-  EXPECT_EQ(ComputeIterationsForView(kMinSpan, 2000), kMaxIterations);
+  EXPECT_FALSE(TryNextIterationBonus(kMinSpan, ceiling_bonus, kIterationStep,
+                                     next_bonus));
+  EXPECT_EQ(ComputeIterationsForView(kMinSpan, ceiling_bonus), kMaxIterations);
 }
 
 TEST(IterationsTest, StepDownWorksFromCeiling) {
+  const int automatic = ComputeIterationsForSpan(kMinSpan);
+  const int ceiling_bonus = kMaxIterations - automatic;
   int next_bonus = 0;
 
-  ASSERT_TRUE(
-      TryNextIterationBonus(kMinSpan, 2000, -kIterationStep, next_bonus));
-  EXPECT_EQ(next_bonus, 1900);
+  ASSERT_TRUE(TryNextIterationBonus(kMinSpan, ceiling_bonus, -kIterationStep,
+                                    next_bonus));
+  EXPECT_EQ(next_bonus, ceiling_bonus - kIterationStep);
   EXPECT_LT(ComputeIterationsForView(kMinSpan, next_bonus), kMaxIterations);
 }
 
