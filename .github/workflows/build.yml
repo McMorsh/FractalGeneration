@@ -72,7 +72,7 @@ jobs:
           fi
           cp -r build-mingw/assets dist/FractalGeneration/assets
           cp -r docs dist/FractalGeneration/docs
-          cp README.md LICENSE CHANGELOG.md dist/FractalGeneration/
+          cp README.md README.ru.md LICENSE CHANGELOG.md dist/FractalGeneration/
           cd dist
           zip -r "FractalGeneration-v${version}-win-x64.zip" FractalGeneration
 

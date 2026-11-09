@@ -3,156 +3,168 @@
 [![Build](https://github.com/McMorsh/FractalGeneration/actions/workflows/build.yml/badge.svg)](https://github.com/McMorsh/FractalGeneration/actions/workflows/build.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-Интерактивный визуализатор фракталов на C++20. Множества Мандельброта, Жюлиа
-и Burning Ship считаются параллельно через OpenMP и выводятся в окне raylib.
-Есть плавная раскраска, зум к курсору, фоновый расчёт кадров, экспорт PNG
-до 8K и GIF-анимация зума.
+**English** | [Русский](README.ru.md)
 
-![Общий вид множества Мандельброта](docs/preview.png)
+An interactive fractal visualizer written in C++20. The Mandelbrot, Julia, and
+Burning Ship sets are computed in parallel with OpenMP and displayed in a raylib
+window. It includes smooth coloring, zoom to the cursor, background frame
+rendering, PNG export up to 8K, and zoom GIF animation.
 
-## Возможности
+![Mandelbrot set overview](docs/preview.png)
 
-- три фрактала: Мандельброт, Жюлиа и Burning Ship, переключение по `T`;
-- сглаженная раскраска по непрерывному числу итераций;
-- три палитры: Ember, Ocean и Mono;
-- зум колесом к точке под курсором, панорамирование мышью и стрелками;
-- копирование и вставка вида через буфер обмена (`C` и `V`);
-- автоматический подбор числа итераций при зуме и ручная подстройка;
-- параллельный расчёт через OpenMP и фоновый поток, интерфейс не блокируется;
-- расчёт на GPU через OpenCL для всех трёх фракталов, с откатом на AVX2 и скалярный код;
-- выбор backend через `--backend auto|cpu|opencl`, активное устройство показано в HUD;
-- предпросмотр в половинном разрешении во время движения, полный кадр после остановки;
-- изменение размера окна с пересчётом кадра;
-- экспорт PNG без интерфейса в FHD, 2K, 4K или 8K;
-- закладки видов: `1`...`9` и `Shift + 1`...`9`;
-- экспорт зума в GIF по `F3`: 1280x720, 25 fps, 5 секунд;
-- русский и английский интерфейс, выбор языка запоминается;
-- рендер PNG без окна через командную строку;
-- пересчёт только при изменении вида, а не каждый кадр.
+## Features
 
-Пример приближения к границе множества:
+- three fractals: Mandelbrot, Julia, and Burning Ship, switched with `T`;
+- smooth coloring based on the continuous iteration count;
+- three palettes: Ember, Ocean, and Mono;
+- wheel zoom toward the point under the cursor, panning with the mouse and
+  arrow keys;
+- copying and pasting the view via the clipboard (`C` and `V`);
+- automatic iteration count selection when zooming, plus manual adjustment;
+- parallel computation with OpenMP and a background thread, so the UI stays
+  responsive;
+- GPU computation via OpenCL for all three fractals, with fallback to AVX2 and
+  scalar code;
+- backend selection with `--backend auto|cpu|opencl`; the active device is
+  shown in the HUD;
+- half-resolution preview while moving and a full frame after stopping;
+- window resizing with frame recomputation;
+- PNG export without the UI in FHD, 2K, 4K, or 8K;
+- view bookmarks: `1`...`9` and `Shift + 1`...`9`;
+- zoom export to GIF with `F3`: 1280x720, 25 fps, 5 seconds;
+- Russian and English UI; the language choice is remembered;
+- headless PNG rendering via the command line;
+- recomputation only when the view changes, not on every frame.
 
-![Анимация приближения к границе множества](docs/zoom.gif)
+Example of zooming toward the set boundary:
 
-## Управление
+![Zoom animation toward the set boundary](docs/zoom.gif)
 
-| Действие | Клавиши и мышь |
+## Controls
+
+| Action | Keys and mouse |
 | --- | --- |
-| Приблизить или отдалить | Колесо мыши, `+` и `-` |
-| Переместить изображение | Стрелки, левая кнопка мыши и перетаскивание |
-| Скопировать или вставить вид | `C` и `V` |
-| Перейти к закладке | `1`...`9` |
-| Сохранить закладку | `Shift + 1`...`9` |
-| Увеличить или уменьшить число итераций | `[` и `]` |
-| Сменить палитру | `P` |
-| Сменить фрактал | `T` |
-| Сбросить вид | `R` |
-| Сохранить PNG в выбранном разрешении | `F2` |
-| Экспортировать зум в GIF | `F3` |
-| Выбрать разрешение PNG | `Shift + влево / вправо` |
-| Скрыть или показать интерфейс | `F11` |
-| Полноэкранный режим | `Alt + Enter` |
-| Показать или скрыть подсказки | `H` |
-| Переключить язык интерфейса | `L` |
-| Выход | `Esc` |
+| Zoom in or out | Mouse wheel, `+` and `-` |
+| Move the image | Arrow keys, left mouse button and drag |
+| Copy or paste the view | `C` and `V` |
+| Go to a bookmark | `1`...`9` |
+| Save a bookmark | `Shift + 1`...`9` |
+| Increase or decrease the iteration count | `[` and `]` |
+| Switch the palette | `P` |
+| Switch the fractal | `T` |
+| Reset the view | `R` |
+| Save a PNG at the selected resolution | `F2` |
+| Export a zoom to GIF | `F3` |
+| Select the PNG resolution | `Shift + left / right` |
+| Hide or show the UI | `F11` |
+| Fullscreen mode | `Alt + Enter` |
+| Show or hide help | `H` |
+| Switch the UI language | `L` |
+| Exit | `Esc` |
 
-Версия приложения показана в правом нижнем углу, пока интерфейс виден.
+The application version is shown in the lower right corner while the UI is
+visible.
 
-### Фракталы
+### Fractals
 
-Клавиша `T` переключает Мандельброт, Жюлиа и Burning Ship.
+The `T` key cycles through Mandelbrot, Julia, and Burning Ship.
 
-У Жюлиа параметр `c` меняется двумя ползунками в панели `Julia c` справа внизу:
-`Re` и `Im`, диапазон -2...2. Значение по умолчанию `-0.8 + 0.156i`, начальный вид
-центрирован в нуле с шириной 4, клавиша `R` возвращает к нему.
+For Julia, the parameter `c` is controlled by two sliders in the `Julia c`
+panel in the lower right: `Re` and `Im`, range -2 to 2. The default value is
+`-0.8 + 0.156i`; the initial view is centered at zero with width 4, and the `R`
+key returns to it.
 
-У Burning Ship параметра нет. Начальный вид центрирован около `(-0.5, 0.5)`
-с шириной 4.
+Burning Ship has no parameter. The initial view is centered near `(-0.5, 0.5)`
+with width 4.
 
-Выбранный тип и `c` сохраняются между запусками. Смена типа сохраняет текущий
-вид, поэтому после переключения может понадобиться `R`. У Жюлиа при ширине окна
-меньше 800 px панель подсказок скрывается, чтобы не перекрывать ползунки.
+The selected type and `c` persist between runs. Changing the type keeps the
+current view, so `R` may be needed after switching. For Julia, when the window
+width is below 800 px, the help panel is hidden so it does not overlap the
+sliders.
 
-## Галерея
+## Gallery
 
-Три фрактала и три палитры:
+Three fractals and three palettes:
 
-![Фракталы и палитры](docs/gallery.png)
+![Fractals and palettes](docs/gallery.png)
 
-Полные изображения лежат в `docs/gallery/`.
+Full-size images are in `docs/gallery/`.
 
-### Экспорт PNG
+### PNG export
 
-`F2` считает кадр в выбранном разрешении в фоне и сохраняет
-`<фрактал>_ГГГГММДД_ЧЧММСС_4k.png`. Пресеты: FHD (1920x1080), 2K (2560x1440),
-4K (3840x2160) и 8K (7680x4320). Текущий виден в HUD как `PNG 4K` и
-переключается по `Shift + влево / вправо`. Выбор запоминается.
+`F2` renders the frame at the selected resolution in the background and saves
+`<fractal>_YYYYMMDD_HHMMSS<suffix>.png`. Presets: FHD (1920x1080),
+2K (2560x1440), 4K (3840x2160), and 8K (7680x4320); the file suffix is `_fhd`,
+`_2k`, `_4k`, or `_8k`. The current preset is shown in the HUD as `PNG 4K` and
+switched with `Shift + left / right`. The choice is remembered.
 
-Кадр сохраняет вертикальный охват окна и расширяется по горизонтали до 16:9.
-Интерфейс в PNG не попадает. На 8K расчёт занимает заметно больше времени
-и требует больше памяти.
+The frame preserves the window's vertical extent and expands horizontally to
+16:9. The UI is not included in the PNG. At 8K, rendering takes noticeably
+longer and requires more memory.
 
-### Анимация GIF
+### GIF animation
 
-`F3` запускает фоновый экспорт зума к точке под курсором в GIF. Параметры:
-1280x720, 25 fps, 5 секунд и примерно 1000x приближения от текущего вида.
-Файл называется `zoom_ГГГГММДД_ЧЧММСС.gif` и сохраняется в текущий каталог.
+`F3` starts a background export of a zoom toward the point under the cursor.
+Settings: 1280x720, 25 fps, 5 seconds, and about 1000x magnification from the
+current view. The file is named `zoom_YYYYMMDD_HHMMSS.gif` and saved to the
+current directory.
 
-Число итераций и длина цветового цикла фиксируются на всю анимацию, поэтому
-палитра не мигает. Кадр сохраняет вертикальный охват окна и расширяется по
-горизонтали до 16:9, как при экспорте PNG. Если курсор стоит внутри множества,
-зум уйдёт в чёрную внутренность: наводите его на границу или интересную
-область. Повторное `F3` отменяет экспорт, прогресс виден в HUD. На глубоком
-зуме кадры считаются долго, а файл получается больше.
+The iteration count and color cycle length are fixed for the whole animation,
+so the palette does not flicker. The frame preserves the window's vertical
+extent and expands horizontally to 16:9, as with PNG export. If the cursor is
+inside the set, the zoom will go into the black interior; point it at the
+boundary or an interesting area. Pressing `F3` again cancels the export;
+progress is shown in the HUD. At deep zoom, frames take longer to compute and
+the file becomes larger.
 
-### Буфер обмена
+### Clipboard
 
-`C` копирует центр, span, зум, число итераций и палитру. `V` вставляет эти
-параметры обратно, зум восстанавливается из span. Если в буфере нет подходящего
-текста или параметры несовместимы, вид не меняется и появляется сообщение
-об ошибке.
+`C` copies the center, span, zoom, iteration count, and palette. `V` pastes
+these parameters back; zoom is restored from the span. If the clipboard does
+not contain suitable text or the parameters are incompatible, the view does
+not change and an error message appears.
 
-### Закладки
+### Bookmarks
 
-`Shift + 1`...`Shift + 9` открывают поле ввода имени и сохраняют текущий вид
-в выбранный слот. `Enter` сохраняет, `Esc` отменяет. Пустое имя заменяется на
-`Закладка N`. Клавиши `1`...`9` возвращают сохранённый вид; если слот пуст,
-в HUD появляется сообщение об этом.
+`Shift + 1`...`Shift + 9` open a name input field and save the current view to
+the selected slot. `Enter` saves, `Esc` cancels. An empty name is replaced with
+`Bookmark N`. The `1`...`9` keys restore a saved view; if the slot is empty, a
+message about it appears in the HUD.
 
-В закладке хранятся центр, span, число итераций, палитра, тип фрактала и `c`
-для Жюлиа, поэтому вид восстанавливается полностью. Файл лежит рядом с
-настройками:
+A bookmark stores the center, span, iteration count, palette, fractal type,
+and Julia `c`, so the view is restored completely. The file is located next to
+the settings:
 
 - Windows: `%APPDATA%\FractalGeneration\bookmarks.txt`;
-- Linux: `$XDG_CONFIG_HOME/FractalGeneration/bookmarks.txt` или
+- Linux: `$XDG_CONFIG_HOME/FractalGeneration/bookmarks.txt` or
   `~/.config/FractalGeneration/bookmarks.txt`.
 
-Формат текстовый: блок начинается с `[N] имя`, дальше идут поля вида. Файл
-можно править вручную, имена в нём тоже можно менять.
+The format is plain text: a block starts with `[N] name`, followed by the view
+fields. The file can be edited manually, and names can be changed there too.
 
-### Итерации
+### Iterations
 
-`[` и `]` меняют число итераций. Шаг растёт вместе со значением: около 100
-на мелких числах и несколько тысяч на глубоком зуме. Диапазон 50...200 000.
-Удерживайте клавишу, чтобы менять значение подряд.
+`[` and `]` change the iteration count. The step grows with the value: about
+100 at small values and several thousand at deep zoom. The range is 50 to
+200,000. Hold the key to change the value continuously.
 
-### Язык и настройки
+### Language and settings
 
-`L` переключает русский и английский интерфейс. Заголовок окна, HUD, подсказки
-и уведомления обновляются сразу.
+`L` switches between the Russian and English UI. The window title, HUD, help
+panel, and notifications update immediately.
 
-Настройки хранятся в `settings.txt`:
+Settings are stored in `settings.txt`:
 
 - Windows: `%APPDATA%\FractalGeneration\settings.txt`;
-- Linux: `$XDG_CONFIG_HOME/FractalGeneration/settings.txt` или
+- Linux: `$XDG_CONFIG_HOME/FractalGeneration/settings.txt` or
   `~/.config/FractalGeneration/settings.txt`.
 
-Там же лежат палитра, пресет PNG, тип фрактала и `c` для Julia. Если файл
-удалить, при следующем запуске снова будут русский язык, Ember, FHD и
-Мандельброт. Настройки из старого каталога `MandelbrotFractalGeneration`
-подхватываются автоматически.
+It also stores the palette, PNG preset, fractal type, and Julia `c`. If the
+file is deleted, the next launch will use Russian, Ember, FHD, and Mandelbrot
+again. Settings from the old `MandelbrotFractalGeneration` directory are picked
+up automatically.
 
-Пример файла:
+Example file:
 
 ```text
 language=ru
@@ -163,15 +175,17 @@ julia-im=0.156
 png=4K
 ```
 
-### Изменение размера окна
+### Window resizing
 
-Окно можно потянуть за край или угол, минимальный размер 640x480. Фрактал
-пересчитывается под новый размер, центр и масштаб сохраняются.
+The window can be resized by dragging its edge or corner; the minimum size is
+640x480.
+The fractal is recomputed for the new size while the center and scale are
+preserved.
 
-## Рендер без окна
+## Headless rendering
 
-Без `--output` запускается интерактивное окно. С `--output` приложение
-рендерит PNG и сразу завершается:
+Without `--output`, the interactive window starts. With `--output`, the
+application renders a PNG and exits immediately:
 
 ```bash
 ./build-mingw/FractalGeneration.exe \
@@ -183,7 +197,7 @@ png=4K
   --palette Ocean
 ```
 
-Пример Julia с другим параметром `c`:
+Julia example with a different `c` parameter:
 
 ```bash
 ./build-mingw/FractalGeneration.exe \
@@ -193,86 +207,90 @@ png=4K
   --span 4
 ```
 
-| Опция | Значение |
+| Option | Value |
 | --- | --- |
-| `-o, --output <file>` | путь к PNG, включает режим без окна |
-| `--width <px>` | ширина изображения, по умолчанию 1200 |
-| `--height <px>` | высота, по умолчанию 800 |
-| `--iterations <n>` | число итераций, по умолчанию подбирается по `--span` |
-| `--center <re> <im>` | центр окна, по умолчанию `-0.6 0` |
-| `--span <value>` | ширина окна в комплексных единицах, по умолчанию 3.5 |
-| `--palette <name>` | `Ember`, `Ocean` или `Mono` |
-| `--fractal <name>` | `mandelbrot`, `julia` или `burningship`, по умолчанию `mandelbrot` |
-| `--julia-re <value>` | реальная часть `c` для Julia, по умолчанию -0.8 |
-| `--julia-im <value>` | мнимая часть `c` для Julia, по умолчанию 0.156 |
-| `--backend <name>` | `auto`, `cpu` или `opencl`, по умолчанию `auto` |
-| `-v, --version` | показать версию приложения |
-| `-h, --help` | справка |
+| `-o, --output <file>` | PNG path, enables headless mode |
+| `--width <px>` | image width, 1200 by default |
+| `--height <px>` | image height, 800 by default |
+| `--iterations <n>` | iteration count, selected from `--span` by default |
+| `--center <re> <im>` | window center, `-0.6 0` by default |
+| `--span <value>` | window width in complex units, 3.5 by default |
+| `--palette <name>` | `Ember` (default), `Ocean`, or `Mono` |
+| `--fractal <name>` | `mandelbrot`, `julia`, or `burningship`, `mandelbrot` by default |
+| `--julia-re <value>` | real part of `c` for Julia, -0.8 by default |
+| `--julia-im <value>` | imaginary part of `c` for Julia, 0.156 by default |
+| `--backend <name>` | `auto`, `cpu`, or `opencl`, `auto` by default |
+| `-v, --version` | show the application version |
+| `-h, --help` | help |
 
-Имена палитр, фракталов и backend не зависят от регистра. Опции `--width`,
+Palette, fractal, and backend names are case-insensitive. The `--width`,
 `--height`, `--iterations`, `--center`, `--span`, `--palette`, `--fractal`,
-`--julia-re` и `--julia-im` действуют только в режиме без окна. `--backend`
-действует и в окне: выбранное устройство показано в HUD. OpenCL работает для
-всех трёх фракталов; в headless-режиме `--backend opencl` при отсутствии
-подходящей видеокарты завершается с ошибкой. В GUI параметр `c` у Julia
-меняется ползунками, а headless использует `-0.8 + 0.156i` или значения из
-`--julia-re` и `--julia-im`. Для Burning Ship удобно `--center -0.5 0.5 --span 4`.
+`--julia-re`, and `--julia-im` options only apply in headless mode. `--backend`
+also applies in the window: the selected device is shown in the HUD. OpenCL
+works for all three fractals; in headless mode, `--backend opencl` exits with
+an error if no suitable GPU is available. In the GUI, Julia's `c` is controlled
+by sliders, while headless mode uses `-0.8 + 0.156i` or the values from
+`--julia-re` and `--julia-im`. For Burning Ship, use
+`--center -0.5 0.5 --span 4`.
 
-## Как это работает
+## How it works
 
-Для каждой точки `c` на комплексной плоскости вычисляется последовательность
+For each point `c` on the complex plane, the following sequence is computed:
 
 ```text
 z₀ = 0
 zₙ₊₁ = zₙ² + c
 ```
 
-Итерации продолжаются, пока `|zₙ| ≤ 2`. Выход за этот предел означает, что
-точка лежит вне множества, а число итераций до выхода задаёт цвет.
+Iterations continue while `|zₙ| ≤ 2`. Exceeding this limit means the point lies
+outside the set, and the number of iterations before escape determines the
+color.
 
-У Мандельброта `z₀ = 0`, а точкой плоскости является `c`. У Жюлиа наоборот:
-точка плоскости задаёт `z₀`, а `c` постоянно и равно `-0.8 + 0.156i`, поэтому
-для каждого `c` получается свой узор. У Burning Ship `z₀ = 0`, а `c` задаёт
-точка плоскости, но перед каждым возведением в квадрат берутся модули
-компонент: `zₙ₊₁ = (|Re zₙ| + i |Im zₙ|)² + c`.
+For Mandelbrot, `z₀ = 0`, and the point on the plane is `c`. Julia is the
+opposite: the point on the plane defines `z₀`, while `c` is constant and equal
+to `-0.8 + 0.156i`, so different values of `c` produce different patterns.
+For Burning Ship, `z₀ = 0` and the point on the plane defines `c`, but the
+absolute values of the components are taken before each squaring:
+`zₙ₊₁ = (|Re zₙ| + i |Im zₙ|)² + c`.
 
-Чтобы убрать ступени между соседними цветами, используется сглаженная оценка:
+To remove bands between adjacent colors, a smooth estimate is used:
 
 ```text
 μ = n + 1 - log₂(log₂ |zₙ|)
 ```
 
-Точки, не вышедшие за предел за `max_iterations` шагов, считаются внутренними
-и окрашиваются в чёрный.
+Points that do not escape within `max_iterations` steps are considered
+interior and colored black.
 
-### Палитры
+### Palettes
 
-| Палитра | Цвета | Назначение |
+| Palette | Colors | Purpose |
 | --- | --- | --- |
-| Ember | тёмно-фиолетовый, малиновый, оранжевый, кремовый | тёплый акцент на границе; тёмное начало цикла сливается с чёрной внутренностью |
-| Ocean | тёмно-синий, бирюзовый, белый | холодная альтернатива, лучше разделяет тонкие полосы на глубоком зуме |
-| Mono | серая шкала | проверка формы и сглаживания без влияния цвета |
+| Ember | dark purple, crimson, orange, cream | warm accent on the boundary; the dark start of the cycle blends with the black interior |
+| Ocean | dark blue, turquoise, white | cool alternative, better separates thin bands at deep zoom |
+| Mono | grayscale | checking shape and smoothing without color influence |
 
-Все палитры замкнуты: последний цвет близок к первому, поэтому при
-зацикливании нет видимого шва. Длина цикла растёт с `max_iterations`, иначе
-на глубоком зуме полосы становятся слишком частыми. Палитра переключается
-по `P` и сохраняется в настройках.
+All palettes are closed: the last color is close to the first, so there is no
+visible seam when cycling. The cycle length grows with `max_iterations`;
+otherwise bands become too dense at deep zoom. The palette is switched with
+`P` and saved in the settings.
 
-## Сборка
+## Building
 
-Требования:
+Requirements:
 
-- компилятор с поддержкой C++20;
-- CMake 3.21 или новее;
+- a compiler with C++20 support;
+- CMake 3.21 or newer;
 - OpenMP;
-- raylib 5.x или новее;
-- OpenCL (необязательно, для GPU-расчёта);
-- GoogleTest (для тестов).
+- raylib 5.x or newer;
+- giflib (for GIF animation);
+- OpenCL (optional, for GPU computation);
+- GoogleTest (for tests).
 
 ### Windows (MSYS2 / MinGW)
 
-Установите [MSYS2](https://www.msys2.org/) в `C:\msys64` и откройте терминал
-**MSYS2 UCRT64**:
+Install [MSYS2](https://www.msys2.org/) to `C:\msys64` and open the **MSYS2
+UCRT64** terminal:
 
 ```bash
 pacman -Syu
@@ -283,7 +301,7 @@ pacman -S --needed git mingw-w64-ucrt-x86_64-gcc \
   mingw-w64-ucrt-x86_64-opencl-headers mingw-w64-ucrt-x86_64-opencl-icd
 ```
 
-Сборка:
+Build:
 
 ```bash
 git clone https://github.com/McMorsh/FractalGeneration.git
@@ -294,14 +312,15 @@ cmake --build --preset mingw-release
 ./build-mingw/FractalGeneration.exe
 ```
 
-Чтобы запускать exe из PowerShell или Проводника, не нужно вручную менять PATH:
-CMake при сборке через MinGW сам копирует нужные DLL рядом с exe. Иконка окна
-`assets/icon.png`, шрифт `assets/IBMPlexMono-Regular.ttf` и лицензия
-`assets/OFL.txt` копируются в `assets/` рядом с exe, а `assets/icon.ico`
-встраивается в сам файл.
+To run the exe from PowerShell or File Explorer, you do not need to change
+PATH manually: when building with MinGW, CMake copies the required DLLs next
+to the exe. The window icon `assets/icon.png`, font
+`assets/IBMPlexMono-Regular.ttf`, and license `assets/OFL.txt` are copied to
+`assets/` next to the exe, while `assets/icon.ico` is embedded into the file
+itself.
 
-OpenCL-бэкенд включается автоматически, если CMake нашёл OpenCL. Если пакетов
-нет, проект собирается с AVX2 и скалярным CPU-кодом.
+The OpenCL backend is enabled automatically if CMake finds OpenCL. If the
+packages are missing, the project builds with AVX2 and scalar CPU code.
 
 ### Linux
 
@@ -309,7 +328,7 @@ OpenCL-бэкенд включается автоматически, если CM
 git clone https://github.com/McMorsh/FractalGeneration.git
 cd FractalGeneration
 
-# Зависимости raylib для Debian и Ubuntu
+# raylib dependencies for Debian and Ubuntu
 sudo apt update
 sudo apt install build-essential cmake git curl zip unzip tar pkg-config \
   libgl1-mesa-dev libx11-dev libxrandr-dev libxi-dev libxcursor-dev \
@@ -327,7 +346,7 @@ cmake --build build -j
 ./build/FractalGeneration
 ```
 
-## Тесты
+## Tests
 
 ```bash
 cmake --preset mingw-release
@@ -335,58 +354,58 @@ cmake --build --preset mingw-release
 ctest --preset mingw-release
 ```
 
-На Linux тесты запускаются через каталог сборки:
+On Linux, tests are run through the build directory:
 
 ```bash
 ctest --test-dir build --output-on-failure
 ```
 
-Если тесты не нужны, сконфигурируйте проект без `BUILD_TESTING` или передайте
+If tests are not needed, configure the project without `BUILD_TESTING` or pass
 `-DBUILD_TESTING=OFF`.
 
-## Структура проекта
+## Project structure
 
-| Путь | Назначение |
+| Path | Purpose |
 | --- | --- |
-| `fractal_core/fractal.hpp`, `fractal_core/fractal.cpp` | Расчёт выбранного фрактала через OpenCL, AVX2 или скалярный код |
-| `fractal_core/backend.hpp`, `fractal_core/backend.cpp` | Выбор и описание вычислительного backend |
-| `fractal_core/fractal_opencl.hpp`, `fractal_core/fractal_opencl.cpp` | OpenCL-бэкенд для всех фракталов |
-| `fractal_core/fractal_simd.hpp`, `fractal_core/fractal_simd.cpp` | AVX2-путь для всех фракталов |
-| `fractal_core/fractal_type.hpp`, `fractal_core/fractal_type.cpp` | Тип фрактала, параметры Julia и разбор имени |
-| `fractal_core/view.hpp`, `fractal_core/view.cpp` | Камера: зум, панорамирование и координаты |
-| `fractal_core/iterations.hpp`, `fractal_core/iterations.cpp` | Автоматическое число итераций и ручная подстройка |
-| `fractal_core/view_snapshot.hpp`, `fractal_core/view_snapshot.cpp` | Формат и разбор параметров вида для буфера обмена |
-| `color_map/color_map.hpp`, `color_map/color_map.cpp` | Палитры и преобразование итераций в цвет |
-| `app/command_line.hpp`, `app/command_line.cpp` | Разбор аргументов командной строки и справка |
-| `app/headless.hpp`, `app/headless.cpp` | Рендер PNG без окна |
-| `app/application.hpp`, `app/application.cpp` | Главный цикл, ввод, предпросмотр и экспорт |
-| `renderer/export_presets.hpp` | Пресеты разрешения FHD, 2K, 4K и 8K |
-| `renderer/fractal_render.hpp`, `renderer/fractal_render.cpp` | Окно, текстура и экранный интерфейс |
-| `renderer/image_render.hpp`, `renderer/image_render.cpp` | Рендер и сохранение PNG без окна |
-| `renderer/render_settings.hpp` | Общие параметры кадра для оконного и headless-рендера |
-| `renderer/image_export_worker.hpp`, `renderer/image_export_worker.cpp` | Фоновый экспорт PNG в выбранном разрешении |
-| `renderer/gif_writer.hpp`, `renderer/gif_writer.cpp` | Запись GIF89a с общей палитрой |
-| `renderer/animation_worker.hpp`, `renderer/animation_worker.cpp` | Фоновый экспорт анимации зума |
-| `renderer/bookmarks.hpp`, `renderer/bookmarks.cpp` | Закладки видов и файл `bookmarks.txt` |
-| `renderer/localization.hpp`, `renderer/localization.cpp` | Строки русского и английского интерфейса |
-| `renderer/render_worker.hpp`, `renderer/render_worker.cpp` | Фоновый расчёт кадров |
-| `renderer/settings.hpp`, `renderer/settings.cpp` | Сохранение и чтение настроек интерфейса |
-| `main.cpp` | Точка входа: разбор режима и запуск приложения |
-| `tests/` | Тесты GoogleTest для `CommandLine`, `Fractal`, `FractalType`, `Iterations`, `ColorMap`, `View`, `ViewSnapshot`, `ImageRender`, `ExportPresets`, `Localization` и `Settings` |
-| `assets/` | Иконки, шрифт IBM Plex Mono и текст лицензии OFL |
-| `docs/` | Изображения для README |
+| `fractal_core/fractal.hpp`, `fractal_core/fractal.cpp` | Computation of the selected fractal via OpenCL, AVX2, or scalar code |
+| `fractal_core/backend.hpp`, `fractal_core/backend.cpp` | Selection and description of the compute backend |
+| `fractal_core/fractal_opencl.hpp`, `fractal_core/fractal_opencl.cpp` | OpenCL backend for all fractals |
+| `fractal_core/fractal_simd.hpp`, `fractal_core/fractal_simd.cpp` | AVX2 path for all fractals |
+| `fractal_core/fractal_type.hpp`, `fractal_core/fractal_type.cpp` | Fractal type, Julia parameters, and name parsing |
+| `fractal_core/view.hpp`, `fractal_core/view.cpp` | Camera: zoom, panning, and coordinates |
+| `fractal_core/iterations.hpp`, `fractal_core/iterations.cpp` | Automatic iteration count and manual adjustment |
+| `fractal_core/view_snapshot.hpp`, `fractal_core/view_snapshot.cpp` | View parameter format and parsing for the clipboard |
+| `color_map/color_map.hpp`, `color_map/color_map.cpp` | Palettes and iteration-to-color conversion |
+| `app/command_line.hpp`, `app/command_line.cpp` | Command line argument parsing and help |
+| `app/headless.hpp`, `app/headless.cpp` | Headless PNG rendering |
+| `app/application.hpp`, `app/application.cpp` | Main loop, input, preview, and export |
+| `renderer/export_presets.hpp` | FHD, 2K, 4K, and 8K resolution presets |
+| `renderer/fractal_render.hpp`, `renderer/fractal_render.cpp` | Window, texture, and on-screen UI |
+| `renderer/image_render.hpp`, `renderer/image_render.cpp` | Headless rendering and PNG saving |
+| `renderer/render_settings.hpp` | Shared frame settings for windowed and headless rendering |
+| `renderer/image_export_worker.hpp`, `renderer/image_export_worker.cpp` | Background PNG export at the selected resolution |
+| `renderer/gif_writer.hpp`, `renderer/gif_writer.cpp` | GIF89a writing with a shared palette |
+| `renderer/animation_worker.hpp`, `renderer/animation_worker.cpp` | Background zoom animation export |
+| `renderer/bookmarks.hpp`, `renderer/bookmarks.cpp` | View bookmarks and the `bookmarks.txt` file |
+| `renderer/localization.hpp`, `renderer/localization.cpp` | Russian and English UI strings |
+| `renderer/render_worker.hpp`, `renderer/render_worker.cpp` | Background frame rendering |
+| `renderer/settings.hpp`, `renderer/settings.cpp` | Saving and loading UI settings |
+| `main.cpp` | Entry point: mode parsing and application launch |
+| `tests/` | GoogleTest tests for `CommandLine`, `Fractal`, `FractalType`, `Iterations`, `ColorMap`, `View`, `ViewSnapshot`, `ImageRender`, `ExportPresets`, `Localization`, and `Settings` |
+| `assets/` | Icons, IBM Plex Mono font, and OFL license text |
+| `docs/` | Images for the README |
 
-## Будущие улучшения
+## Future improvements
 
-- другие фракталы, например Tricorn;
-- кэш последних кадров для возврата к уже посещённому виду;
-- более глубокий зум через perturbation theory;
-- сохранение выбранного backend в настройках;
-- Linux-пакет AppImage или Flatpak.
+- other fractals, for example Tricorn;
+- a cache of recent frames to return to a visited view;
+- deeper zoom via perturbation theory;
+- saving the selected backend in settings;
+- Linux package as AppImage or Flatpak.
 
-## Лицензия
+## License
 
-Проект распространяется по лицензии [MIT](LICENSE).
+The project is distributed under the [MIT](LICENSE) license.
 
-Шрифт IBM Plex Mono распространяется по SIL Open Font License 1.1.
-Текст лицензии находится в `assets/OFL.txt`.
+IBM Plex Mono is distributed under the SIL Open Font License 1.1. The license
+text is in `assets/OFL.txt`.
